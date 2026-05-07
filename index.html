@@ -109,7 +109,7 @@
         const sprite = document.getElementById('pet' + id);
         const badge = document.getElementById('badge' + id);
         const folder = (id === 'A') ? 'michael' : 'jacinta';
-        sprite.src = `images/${folder}/${status}.png`;
+        sprite.src = `${folder}/${status}.png`;
         badge.innerText = "Status: " + status;
         badge.className = "status-badge status-" + status;
     }
