@@ -6,32 +6,31 @@
     <title>Note Guardian: The Competition</title>
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: #2d3436; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .pet-display { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
-        .pet-sprite { width: 120px; height: 120px; object-fit: contain; margin: 10px auto; display: block; border: 2px dashed #ddd; border-radius: 15px; }
-        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; text-transform: uppercase; font-size: 0.7em; margin-bottom: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .pet-sprite { width: 120px; height: 120px; object-fit: contain; margin: 10px auto; display: block; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; margin-bottom: 10px; }
         .status-happy { background: #55efc4; color: #00b894; }
         .status-tired { background: #ffeaa7; color: #fdcb6e; }
         .status-sick { background: #fab1a0; color: #e17055; }
         .status-coma { background: #a29bfe; color: #6c5ce7; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-        .progress-container { background: #eee; height: 25px; border-radius: 12px; margin: 15px 0; overflow: hidden; position: relative; }
-        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease-in-out; }
-        .inventory-list { font-size: 0.85em; color: #636e72; min-height: 40px; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+        .progress-container { background: #eee; height: 25px; border-radius: 12px; margin: 15px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease; }
+        .backlog-section { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; text-align: left; font-size: 0.85em; }
+        .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; }
         .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; }
         .item-btn { background: #6c5ce7; border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin: 5px; }
-        .item-btn:hover { background: #a29bfe; }
-        .item-btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
-        button.action-btn { width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .item-btn:disabled { background: #555; opacity: 0.6; }
+        button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1 style="text-align:center;">🐾 Note Guardians</h1>
-    <h3 id="weekHeading" style="text-align:center; color: #6c5ce7;">Loading Week...</h3>
+    <h3 id="weekHeading" style="text-align:center; color: #6c5ce7;">Syncing with Sheet...</h3>
 
     <div class="stats-grid">
         <div class="user-card">
@@ -39,9 +38,13 @@
             <div id="badgeA" class="status-badge status-happy">Status: Happy</div>
             <h3>Michael</h3>
             <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
-            <p id="txtA">0 / 0 Notes (0%)</p>
-            <button class="action-btn" onclick="addNote('userA')">+1 Note Completed</button>
-            <p class="inventory-list" id="invA">🎒 Items: None</p>
+            <p id="txtA">0 / 0 (0%)</p>
+            <button class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
+            <div class="backlog-section">
+                <strong>Overdue Notes:</strong>
+                <div id="historyA">None! ✨</div>
+            </div>
+            <p id="invA" style="font-size: 0.8em; color: #666;">🎒 Items: None</p>
         </div>
 
         <div class="user-card">
@@ -49,15 +52,18 @@
             <div id="badgeB" class="status-badge status-happy">Status: Happy</div>
             <h3>Jacinta</h3>
             <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
-            <p id="txtB">0 / 0 Notes (0%)</p>
-            <button class="action-btn" onclick="addNote('userB')">+1 Note Completed</button>
-            <p class="inventory-list" id="invB">🎒 Items: None</p>
+            <p id="txtB">0 / 0 (0%)</p>
+            <button class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
+            <div class="backlog-section">
+                <strong>Overdue Notes:</strong>
+                <div id="historyB">None! ✨</div>
+            </div>
+            <p id="invB" style="font-size: 0.8em; color: #666;">🎒 Items: None</p>
         </div>
     </div>
 
     <div class="shop-box">
-        <h3>🎁 Weekly Draft</h3>
-        <p id="shopDesc">First to 100% gets to claim an item!</p>
+        <h3>🎁 Weekly Reward Draft</h3>
         <div id="shopItems"></div>
     </div>
 </div>
@@ -84,34 +90,40 @@
     }
 
     function updateUI() {
-        // Michael
-        const percA = (gameState.userA.completed / gameState.userA.total) * 100 || 0;
-        document.getElementById('barA').style.width = percA + "%";
-        document.getElementById('txtA').innerText = `${gameState.userA.completed} / ${gameState.userA.total} (${percA.toFixed(0)}%)`;
-        document.getElementById('invA').innerText = "🎒 Items: " + (gameState.userA.items || "None");
-        updatePetDisplay('A', gameState.userA.status);
+        ['userA', 'userB'].forEach(u => {
+            const id = (u === 'userA') ? 'A' : 'B';
+            const user = gameState[u];
+            
+            // Current Week Stats
+            const current = user.history.find(h => h.week === gameState.currentWeek);
+            if (current) {
+                const perc = (current.completed / current.total) * 100 || 0;
+                document.getElementById('bar' + id).style.width = perc + "%";
+                document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
+            }
 
-        // Jacinta
-        const percB = (gameState.userB.completed / gameState.userB.total) * 100 || 0;
-        document.getElementById('barB').style.width = percB + "%";
-        document.getElementById('txtB').innerText = `${gameState.userB.completed} / ${gameState.userB.total} (${percB.toFixed(0)}%)`;
-        document.getElementById('invB').innerText = "🎒 Items: " + (gameState.userB.items || "None");
-        updatePetDisplay('B', gameState.userB.status);
+            // Pet & Items
+            const folder = (id === 'A') ? 'michael' : 'jacinta';
+            document.getElementById('pet' + id).src = `${folder}/${user.status}.png`;
+            document.getElementById('badge' + id).innerText = "Status: " + user.status;
+            document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
+            document.getElementById('inv' + id).innerText = "🎒 Items: " + (user.items.join(", ") || "None");
+
+            // Backlog
+            let backHTML = "";
+            user.history.forEach(h => {
+                if (h.completed < h.total && h.week < gameState.currentWeek) {
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} (+1)</button>`;
+                }
+            });
+            document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
+        });
 
         // Shop
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
-        const currentCat = catList[(gameState.week - 1) % 5];
-        document.getElementById('weekHeading').innerText = `Week ${gameState.week}: ${currentCat}`;
+        const currentCat = catList[(gameState.currentWeek - 1) % 5];
+        document.getElementById('weekHeading').innerText = `Week ${gameState.currentWeek}: ${currentCat}`;
         renderShop(currentCat);
-    }
-
-    function updatePetDisplay(id, status) {
-        const sprite = document.getElementById('pet' + id);
-        const badge = document.getElementById('badge' + id);
-        const folder = (id === 'A') ? 'michael' : 'jacinta';
-        sprite.src = `${folder}/${status}.png`;
-        badge.innerText = "Status: " + status;
-        badge.className = "status-badge status-" + status;
     }
 
     function renderShop(category) {
@@ -119,38 +131,24 @@
         let html = "";
         items.forEach(item => {
             const isSold = (gameState.soldOut === item);
-            const btnText = isSold ? `${item} (Claimed!)` : item;
-            const disabled = isSold ? "disabled" : "";
-            html += `<button class="item-btn" ${disabled} onclick="claim('${item}')">${btnText}</button>`;
+            html += `<button class="item-btn" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">${isSold ? item + ' (Claimed)' : item}</button>`;
         });
         document.getElementById('shopItems').innerHTML = html;
     }
 
-    async function addNote(user) {
-        const newCount = gameState[user].completed + 1;
-        gameState[user].completed = newCount;
+    async function addNote(user, weekID) {
+        const weekData = gameState[user].history.find(h => h.week === weekID);
+        weekData.completed++;
         updateUI();
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: user, newCount: newCount }) });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
     }
 
     async function claim(itemName) {
-        const user = prompt("Who is claiming this? Type 'userA' for Michael or 'userB' for Jacinta").trim();
-        if (!gameState[user]) return;
-
-        const currentPerc = (gameState[user].completed / gameState[user].total) * 100;
-        if (currentPerc < 100) {
-            alert("Nice try! You need 100% completion to claim an item.");
-            return;
-        }
-
-        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: user, newItem: itemName }) });
-        const result = await response.text();
-
-        if (result === "ALREADY_TAKEN") {
-            alert("Item already claimed by someone else!");
-        } else {
-            alert(`${itemName} added to inventory!`);
-        }
+        const user = prompt("Who is claiming? (userA/userB)").trim();
+        const current = gameState[user].history.find(h => h.week === gameState.currentWeek);
+        if (current.completed < current.total) return alert("Finish your current notes first!");
+        
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName }) });
         syncData();
     }
 
