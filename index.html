@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Guardian: The Competition</title>
+    <style>
+        :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: #2d3436; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        
+        /* Pet Section */
+        .pet-display { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+        .pet-sprite { width: 200px; height: 200px; object-fit: contain; margin: 10px auto; display: block; border: 2px dashed #ddd; border-radius: 15px; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; text-transform: uppercase; font-size: 0.8em; }
+        
+        /* State Colors */
+        .status-happy { background: #55efc4; color: #00b894; }
+        .status-tired { background: #ffeaa7; color: #fdcb6e; }
+        .status-sick { background: #fab1a0; color: #e17055; }
+        .status-coma { background: #a29bfe; color: #6c5ce7; }
+
+        /* Competition Cards */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .progress-container { background: #eee; height: 25px; border-radius: 12px; margin: 15px 0; overflow: hidden; position: relative; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        /* Inventory & Shop */
+        .inventory-list { font-size: 0.85em; color: #636e72; min-height: 40px; }
+        .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        .item-btn { background: #6c5ce7; border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin: 5px; transition: transform 0.2s; }
+        .item-btn:hover { transform: scale(1.05); background: #a29bfe; }
+        .item-btn:disabled { background: #444; cursor: not-allowed; opacity: 0.5; }
+        
+        button.action-btn { width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="pet-display">
+        <h2>Our Note Guardian</h2>
+        <img id="petSprite" class="pet-sprite" src="images/happy.png" alt="Pet Image">
+        <div id="statusBadge" class="status-badge status-happy">Status: Happy</div>
+        <p id="weekHeading">Week 1: Wearables</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="user-card">
+            <h3>User A</h3>
+            <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
+            <p id="txtA">0 / 0 Notes (0%)</p>
+            <button class="action-btn" onclick="addNote('userA')">+1 Note Completed</button>
+            <p class="inventory-list" id="invA">🎒 Items: None</p>
+        </div>
+
+        <div class="user-card">
+            <h3>Jacinta</h3>
+            <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
+            <p id="txtB">0 / 0 Notes (0%)</p>
+            <button class="action-btn" onclick="addNote('userB')">+1 Note Completed</button>
+            <p class="inventory-list" id="invB">🎒 Items: None</p>
+        </div>
+    </div>
+
+    <div class="shop-box">
+        <h3>🎁 Weekly Draft</h3>
+        <p id="shopDesc">Complete your notes first to pick an item!</p>
+        <div id="shopItems"></div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
+    
+    const DATABASE = {
+        "Wearables": ["Tiny Sprout Hat", "Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Angel/Devil Wings", "Pom-Pom Beanie"],
+        "Toys": ["Wind-up Mouse", "Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Rocking Horse", "Star Ball", "Plushie"],
+        "Snacks": ["Star Watermelon", "Firefly Honey", "Cloud Cotton Candy", "Rainbow Macaron", "Strawberry Milk", "Lucky Acorn", "Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Sunflower Seed"],
+        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Polaroid", "Fuzzy Cactus", "Cloud Rug"],
+        "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Snack Compass", "Enchanted Umbrella", "Golden Ticket"]
+    };
+
+    let gameState = {};
+
+    async function syncData() {
+        try {
+            const response = await fetch(API_URL);
+            gameState = await response.json();
+            updateUI();
+        } catch (e) { console.log("Sync failed, check API URL"); }
+    }
+
+    function updateUI() {
+        // Update Bars and Text
+        const percA = (gameState.userA.completed / gameState.userA.total) * 100 || 0;
+        const percB = (gameState.userB.completed / gameState.userB.total) * 100 || 0;
+        
+        document.getElementById('barA').style.width = percA + "%";
+        document.getElementById('barB').style.width = percB + "%";
+        document.getElementById('txtA').innerText = `${gameState.userA.completed} / ${gameState.userA.total} (${percA.toFixed(0)}%)`;
+        document.getElementById('txtB').innerText = `${gameState.userB.completed} / ${gameState.userB.total} (${percB.toFixed(0)}%)`;
+        
+        // Items Display
+        document.getElementById('invA').innerText = "🎒 Items: " + (gameState.userA.items || "None");
+        document.getElementById('invB').innerText = "🎒 Items: " + (gameState.userB.items || "None");
+
+        // Shop Logic
+        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
+        const currentCat = catList[(gameState.week - 1) % 5];
+        document.getElementById('weekHeading').innerText = `Week ${gameState.week}: ${currentCat}`;
+        
+        renderShop(currentCat);
+        updatePetState();
+    }
+
+    function renderShop(category) {
+        const items = DATABASE[category].slice(0, 3); // Simplification: First 3 of list
+        let html = "";
+        items.forEach(item => {
+            html += `<button class="item-btn" onclick="claim('${item}')">${item}</button>`;
+        });
+        document.getElementById('shopItems').innerHTML = html;
+    }
+
+    function updatePetState() {
+        const sprite = document.getElementById('petSprite');
+        const badge = document.getElementById('statusBadge');
+        
+        // We'll assume the Sheet sends a 'status' field based on date logic
+        // For now, let's trigger it based on the game logic we discussed
+        const status = gameState.petStatus || "happy"; 
+        sprite.src = `images/${status}.png`;
+        badge.innerText = "Status: " + status;
+        badge.className = "status-badge status-" + status;
+    }
+
+    async function addNote(user) {
+        const newCount = gameState[user].completed + 1;
+        // Immediate local feedback
+        gameState[user].completed = newCount;
+        updateUI();
+
+        // Push to Google Sheets
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: user, newCount: newCount })
+        });
+    }
+
+    // Run sync every 30 seconds
+    setInterval(syncData, 30000);
+    syncData(); // Initial load
+</script>
+
+</body>
+</html>
