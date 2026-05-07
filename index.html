@@ -39,16 +39,14 @@
 <body>
 
 <div class="container">
-    <div class="pet-display">
-        <h2>Our Note Guardian</h2>
-        <img id="petSprite" class="pet-sprite" src="images/happy.png" alt="Pet Image">
-        <div id="statusBadge" class="status-badge status-happy">Status: Happy</div>
-        <p id="weekHeading">Week 1: Wearables</p>
-    </div>
+    <h1 style="text-align:center;">🐾 Note Guardians</h1>
+    <h3 id="weekHeading" style="text-align:center; color: #6c5ce7;">Week 1</h3>
 
     <div class="stats-grid">
         <div class="user-card">
-            <h3>User A</h3>
+            <img id="petA" class="pet-sprite" src="images/happy.png" style="width:120px; height:120px;">
+            <div id="badgeA" class="status-badge status-happy">Status: Happy</div>
+            <h3>Michael</h3>
             <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
             <p id="txtA">0 / 0 Notes (0%)</p>
             <button class="action-btn" onclick="addNote('userA')">+1 Note Completed</button>
@@ -56,6 +54,8 @@
         </div>
 
         <div class="user-card">
+            <img id="petB" class="pet-sprite" src="images/happy.png" style="width:120px; height:120px;">
+            <div id="badgeB" class="status-badge status-happy">Status: Happy</div>
             <h3>Jacinta</h3>
             <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
             <p id="txtB">0 / 0 Notes (0%)</p>
@@ -89,34 +89,41 @@
             const response = await fetch(API_URL);
             gameState = await response.json();
             updateUI();
-        } catch (e) { console.log("Sync failed, check API URL"); }
+        } catch (e) { console.log("Sync failed"); }
     }
 
     function updateUI() {
-        // Update Bars and Text
+        // Michael Update
         const percA = (gameState.userA.completed / gameState.userA.total) * 100 || 0;
-        const percB = (gameState.userB.completed / gameState.userB.total) * 100 || 0;
-        
         document.getElementById('barA').style.width = percA + "%";
-        document.getElementById('barB').style.width = percB + "%";
         document.getElementById('txtA').innerText = `${gameState.userA.completed} / ${gameState.userA.total} (${percA.toFixed(0)}%)`;
-        document.getElementById('txtB').innerText = `${gameState.userB.completed} / ${gameState.userB.total} (${percB.toFixed(0)}%)`;
-        
-        // Items Display
         document.getElementById('invA').innerText = "🎒 Items: " + (gameState.userA.items || "None");
+        updatePetDisplay('A', gameState.userA.status);
+
+        // Jacinta Update
+        const percB = (gameState.userB.completed / gameState.userB.total) * 100 || 0;
+        document.getElementById('barB').style.width = percB + "%";
+        document.getElementById('txtB').innerText = `${gameState.userB.completed} / ${gameState.userB.total} (${percB.toFixed(0)}%)`;
         document.getElementById('invB').innerText = "🎒 Items: " + (gameState.userB.items || "None");
+        updatePetDisplay('B', gameState.userB.status);
 
         // Shop Logic
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
         const currentCat = catList[(gameState.week - 1) % 5];
         document.getElementById('weekHeading').innerText = `Week ${gameState.week}: ${currentCat}`;
-        
         renderShop(currentCat);
-        updatePetState();
+    }
+
+    function updatePetDisplay(id, status) {
+        const sprite = document.getElementById('pet' + id);
+        const badge = document.getElementById('badge' + id);
+        sprite.src = `images/${status}.png`;
+        badge.innerText = "Status: " + status;
+        badge.className = "status-badge status-" + status;
     }
 
     function renderShop(category) {
-        const items = DATABASE[category].slice(0, 3); // Simplification: First 3 of list
+        const items = DATABASE[category].slice(0, 3);
         let html = "";
         items.forEach(item => {
             html += `<button class="item-btn" onclick="claim('${item}')">${item}</button>`;
@@ -124,34 +131,28 @@
         document.getElementById('shopItems').innerHTML = html;
     }
 
-    function updatePetState() {
-        const sprite = document.getElementById('petSprite');
-        const badge = document.getElementById('statusBadge');
-        
-        // We'll assume the Sheet sends a 'status' field based on date logic
-        // For now, let's trigger it based on the game logic we discussed
-        const status = gameState.petStatus || "happy"; 
-        sprite.src = `images/${status}.png`;
-        badge.innerText = "Status: " + status;
-        badge.className = "status-badge status-" + status;
-    }
-
     async function addNote(user) {
         const newCount = gameState[user].completed + 1;
-        // Immediate local feedback
         gameState[user].completed = newCount;
         updateUI();
-
-        // Push to Google Sheets
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user: user, newCount: newCount })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: user, newCount: newCount }) });
     }
 
-    // Run sync every 30 seconds
+    async function claim(itemName) {
+        const user = prompt("Who is claiming this? Type 'userA' for Michael or 'userB' for Jacinta").trim();
+        if (!gameState[user]) return;
+        const currentPerc = (gameState[user].completed / gameState[user].total) * 100;
+        if (currentPerc < 100) {
+            alert("Nice try! You need 100% completion to claim an item.");
+            return;
+        }
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: user, newItem: itemName }) });
+        alert(`${itemName} added to inventory!`);
+        syncData();
+    }
+
     setInterval(syncData, 30000);
-    syncData(); // Initial load
+    syncData();
 </script>
 
 </body>
