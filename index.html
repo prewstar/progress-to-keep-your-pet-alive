@@ -115,11 +115,18 @@
     }
 
     function updatePetDisplay(id, status) {
-        const sprite = document.getElementById('pet' + id);
-        const badge = document.getElementById('badge' + id);
-        sprite.src = `images/${status}.png`;
-        badge.innerText = "Status: " + status;
-        badge.className = "status-badge status-" + status;
+    const sprite = document.getElementById('pet' + id);
+    const badge = document.getElementById('badge' + id);
+    
+    // Distinguish between michael and jacinta folders
+    const folder = (id === 'A') ? 'michael' : 'jacinta';
+    
+    // This looks for: images/michael/happy.png OR images/jacinta/happy.png
+    sprite.src = `images/${folder}/${status}.png`;
+    
+    badge.innerText = "Status: " + status;
+    badge.className = "status-badge status-" + status;
+}
     }
 
     function renderShop(category) {
