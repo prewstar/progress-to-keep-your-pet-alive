@@ -130,12 +130,17 @@
     }
 
     function renderShop(category) {
-        const items = DATABASE[category].slice(0, 3);
-        let html = "";
-        items.forEach(item => {
-            html += `<button class="item-btn" onclick="claim('${item}')">${item}</button>`;
-        });
-        document.getElementById('shopItems').innerHTML = html;
+    const items = DATABASE[category].slice(0, 3);
+    let html = "";
+    items.forEach(item => {
+        // Check if the item matches the one stored as "soldOut" in gameState
+        const isSold = (gameState.soldOut === item);
+        const btnText = isSold ? `${item} (Claimed!)` : item;
+        const disabled = isSold ? "disabled" : "";
+        
+        html += `<button class="item-btn" ${disabled} onclick="claim('${item}')">${btnText}</button>`;
+    });
+    document.getElementById('shopItems').innerHTML = html;
     }
 
     async function addNote(user) {
@@ -146,17 +151,30 @@
     }
 
     async function claim(itemName) {
-        const user = prompt("Who is claiming this? Type 'userA' for Michael or 'userB' for Jacinta").trim();
-        if (!gameState[user]) return;
-        const currentPerc = (gameState[user].completed / gameState[user].total) * 100;
-        if (currentPerc < 100) {
-            alert("Nice try! You need 100% completion to claim an item.");
-            return;
-        }
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: user, newItem: itemName }) });
-        alert(`${itemName} added to inventory!`);
-        syncData();
+    const user = prompt("Who is claiming this? Type 'userA' for Michael or 'userB' for Jacinta").trim();
+    if (!gameState[user]) return;
+
+    const currentPerc = (gameState[user].completed / gameState[user].total) * 100;
+    if (currentPerc < 100) {
+        alert("Nice try! You need 100% completion to claim an item.");
+        return;
     }
+
+    // Send claim to Google Sheet
+    const response = await fetch(API_URL, { 
+        method: 'POST', 
+        body: JSON.stringify({ user: user, newItem: itemName }) 
+    });
+    const result = await response.text();
+
+    if (result === "ALREADY_TAKEN") {
+        alert("Oh no! Jacinta (or Michael) just beat you to it! This item is sold out.");
+    } else {
+        alert(`${itemName} added to inventory!`);
+    }
+    
+    syncData(); // Refresh everything to lock the buttons
+}
 
     setInterval(syncData, 30000);
     syncData();
