@@ -206,9 +206,20 @@
     }
 
     function renderShop(category) {
-        const items = DATABASE[category].slice(0, 3);
+        // Randomize items based on the WeekID seed
+        let allItems = [...DATABASE[category]];
+        let seed = gameState.currentWeek;
+        
+        let shuffled = allItems.sort(() => {
+            const hash = (seed * 9301 + 49297) % 233280;
+            seed = hash;
+            return (hash / 233280) - 0.5;
+        });
+
+        const weeklyItems = shuffled.slice(0, 3);
+
         let html = "";
-        items.forEach(item => {
+        weeklyItems.forEach(item => {
             const isSold = (gameState.soldOut === item);
             const tooltip = DESCRIPTIONS[item] || "A special item!";
             html += `
