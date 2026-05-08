@@ -20,9 +20,37 @@
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease; }
         .backlog-section { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; text-align: left; font-size: 0.85em; }
         .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; }
-        .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; }
-        .item-btn { background: #6c5ce7; border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; position: relative; }
+        
+        /* Custom Styled Tooltip */
+        .item-wrapper { position: relative; display: inline-block; }
+        .item-btn { background: #6c5ce7; border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin: 5px; font-weight: bold; }
         .item-btn:disabled { background: #555; opacity: 0.6; }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 160px;
+            background-color: #fffa65;
+            color: #333;
+            text-align: center;
+            border-radius: 10px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -80px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-weight: bold;
+            border: 2px solid #333;
+            font-size: 0.9em;
+            line-height: 1.2;
+        }
+
+        .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
+
         button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -64,7 +92,6 @@
 
     <div class="shop-box">
         <h3>🎁 Weekly Reward Draft</h3>
-        <p style="font-size: 0.8em; opacity: 0.7;">Hover over items to see descriptions!</p>
         <div id="shopItems"></div>
     </div>
 </div>
@@ -73,56 +100,56 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
     const DESCRIPTIONS = {
-        "Tiny Sprout Hat": "A single green leaf that 'grows' from their head.",
-        "Yellow Raincoat": "Complete with little matching boots.",
-        "Star Sunglasses": "For that celebrity-on-vacation look.",
-        "Crocheted Scarf": "Long enough to trail slightly behind them.",
-        "Flower Crown": "Made of daisies that never wilt.",
-        "Polka-Dot Bowtie": "Automatically straightens itself.",
-        "Paper Bag Mask": "With a hand-drawn smiley face on it.",
-        "Cardboard Armor": "For the brave (but fragile) adventurer.",
-        "Wings": "Tiny fluttering attachments.",
-        "Pom-Pom Beanie": "Extra floppy and soft.",
-        "Wind-up Mouse": "Zips around in circles.",
-        "Jellyfish Lamp": "Hovers slightly off the ground.",
-        "Miniature Train": "Just big enough for them to sit in.",
-        "Squeaky Dino": "Makes a high-pitched mewp sound.",
-        "Infinite Yarn": "Never unravels completely.",
-        "Heart Bubbles": "Creates floating, heart-shaped bubbles.",
-        "Handheld Console": "A tiny device for your pet to play its own games.",
-        "Rocking Horse": "Perfectly sized for a nap.",
-        "Star Ball": "Leaves a trail of glitter when thrown.",
-        "Plushie": "For maximum meta-cuteness.",
-        "Star Watermelon": "Tastes like summer.",
-        "Firefly Honey": "Glows in the dark.",
-        "Cloud Cotton Candy": "Occasionally drifts upward.",
-        "Rainbow Macaron": "A different flavor in every bite.",
-        "Strawberry Milk": "Complete with a tiny straw.",
-        "Lucky Acorn": "Polished to a high shine.",
-        "Jam Cookie": "Leaves a trail of crumbs.",
-        "Moon-Cheese": "Mildly cratered and very savory.",
-        "Sparkling Soda": "Causes the pet to emit tiny sparkles.",
-        "Sunflower Seed": "Hard to carry, but worth it.",
-        "Mushroom Stool": "A cozy place to sit.",
-        "Teacup Bed": "Lined with silk pillows.",
-        "Terrarium Globe": "A tiny ecosystem in a glass ball.",
-        "Ghost Plant": "A translucent, friendly-looking fern.",
-        "Record Player": "Plays lo-fi beats for sleeping.",
-        "Fairy Lights": "Drapes over anything they own.",
-        "Beanbag Chair": "Takes the exact shape of the pet.",
-        "Polaroid": "Of the pet and its owner (you!).",
-        "Fuzzy Cactus": "It’s actually quite fuzzy.",
-        "Cloud Rug": "Feels like walking on air.",
-        "Stardust": "Used to change the pet's color temporarily.",
-        "Antique Key": "No one knows what it opens yet.",
-        "Ever-Burning Candle": "Smells like vanilla and old books.",
-        "Message Bottle": "Contains a random compliment.",
-        "Pocket Sun": "Keeps the pet warm on rainy days.",
-        "Crystal Geode": "Sparkles when the pet is happy.",
-        "Phoenix Feather": "Warm to the touch.",
-        "Snack Compass": "Always reliable.",
-        "Enchanted Umbrella": "Floats over them automatically when it rains.",
-        "Golden Ticket": "A mysterious pass to a future 'Secret Garden.'"
+        "Tiny Sprout Hat": "🌱 A single green leaf that grows from their head.",
+        "Yellow Raincoat": "🧥 Complete with little matching boots.",
+        "Star Sunglasses": "🕶️ For that celebrity-on-vacation look.",
+        "Crocheted Scarf": "🧣 Long enough to trail slightly behind.",
+        "Flower Crown": "🌸 Made of daisies that never wilt.",
+        "Polka-Dot Bowtie": "🎀 Automatically straightens itself.",
+        "Paper Bag Mask": "🎭 With a hand-drawn smiley face.",
+        "Cardboard Armor": "🛡️ For the brave (but fragile) hero.",
+        "Wings": "👼 Tiny fluttering attachments.",
+        "Pom-Pom Beanie": "👒 Extra floppy and soft.",
+        "Wind-up Mouse": "🐭 Zips around in circles.",
+        "Jellyfish Lamp": "🏮 Hovers slightly off the ground.",
+        "Miniature Train": "🚂 Just big enough for them to sit in.",
+        "Squeaky Dino": "🦖 Makes a high-pitched mewp sound.",
+        "Infinite Yarn": "🧶 Never unravels completely.",
+        "Heart Bubbles": "🫧 Creates floating heart-shaped bubbles.",
+        "Handheld Console": "🎮 A tiny device for your pet to play.",
+        "Rocking Horse": "🎠 Perfectly sized for a nap.",
+        "Star Ball": "✨ Leaves a trail of glitter.",
+        "Plushie": "🧸 For maximum meta-cuteness.",
+        "Star Watermelon": "🍉 Tastes like summer.",
+        "Firefly Honey": "🍯 Glows in the dark.",
+        "Cloud Cotton Candy": "☁️ Occasionally drifts upward.",
+        "Rainbow Macaron": "🍪 A different flavor in every bite.",
+        "Strawberry Milk": "🥤 Complete with a tiny straw.",
+        "Lucky Acorn": "🐿️ Polished to a high shine.",
+        "Jam Cookie": "🍓 Leaves a trail of crumbs.",
+        "Moon-Cheese": "🧀 Mildly cratered and very savory.",
+        "Sparkling Soda": "🍹 Causes the pet to emit tiny sparkles.",
+        "Sunflower Seed": "🌻 Hard to carry, but worth it.",
+        "Mushroom Stool": "🍄 A cozy place to sit.",
+        "Teacup Bed": "☕ Lined with silk pillows.",
+        "Terrarium Globe": "🌍 A tiny ecosystem in a glass ball.",
+        "Ghost Plant": "🌿 A translucent, friendly-looking fern.",
+        "Record Player": "🎶 Plays lo-fi beats for sleeping.",
+        "Fairy Lights": "🏮 Drapes over anything they own.",
+        "Beanbag Chair": "💺 Takes the exact shape of the pet.",
+        "Polaroid": "📸 Of the pet and its owner!",
+        "Fuzzy Cactus": "🌵 It’s actually quite fuzzy.",
+        "Cloud Rug": "☁️ Feels like walking on air.",
+        "Stardust": "✨ Change the pet's color temporarily.",
+        "Antique Key": "🔑 No one knows what it opens yet.",
+        "Ever-Burning Candle": "🕯️ Smells like vanilla and old books.",
+        "Message Bottle": "🍾 Contains a random compliment.",
+        "Pocket Sun": "☀️ Keeps the pet warm on rainy days.",
+        "Crystal Geode": "💎 Sparkles when the pet is happy.",
+        "Phoenix Feather": "🪶 Warm to the touch.",
+        "Snack Compass": "🧭 Always reliable.",
+        "Enchanted Umbrella": "☂️ Floats over them automatically.",
+        "Golden Ticket": "🎟️ A pass to a future Secret Garden."
     };
 
     const DATABASE = {
@@ -164,7 +191,6 @@
             let backHTML = "";
             user.history.forEach(h => {
                 if (h.completed < h.total && h.week < gameState.currentWeek) {
-                    // NEW: Formatting button text with Date and Count
                     let rawDate = new Date(h.date);
                     let dateStr = !isNaN(rawDate) ? rawDate.toLocaleDateString('en-AU') : "";
                     backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${h.completed}/${h.total}</button><br>`;
@@ -185,8 +211,13 @@
         items.forEach(item => {
             const isSold = (gameState.soldOut === item);
             const tooltip = DESCRIPTIONS[item] || "A special item!";
-            // NEW: Added title attribute for hover descriptions
-            html += `<button class="item-btn" title="${tooltip}" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">${isSold ? item + ' (Claimed)' : item}</button>`;
+            html += `
+                <div class="item-wrapper">
+                    <button class="item-btn" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">
+                        ${isSold ? item + ' (Claimed)' : item}
+                    </button>
+                    <span class="tooltip-text">${tooltip}</span>
+                </div>`;
         });
         document.getElementById('shopItems').innerHTML = html;
     }
