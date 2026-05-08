@@ -71,12 +71,66 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
+    // Item Descriptions for Hover tooltips
+    const DESCRIPTIONS = {
+        "Tiny Sprout Hat": "A single green leaf that 'grows' from their head.",
+        "Over-sized Yellow Raincoat": "Complete with little matching boots.",
+        "Star-Shaped Sunglasses": "For that celebrity-on-vacation look.",
+        "Crocheted Scarf": "Long enough to trail slightly behind them.",
+        "Flower Crown": "Made of daisies that never wilt.",
+        "Polka-Dot Bowtie": "Automatically straightens itself.",
+        "Paper Bag Mask": "With a hand-drawn smiley face on it.",
+        "Cardboard Armor": "For the brave (but fragile) adventurer.",
+        "Angel/Devil Wings": "Tiny fluttering attachments.",
+        "Pom-Pom Beanie": "Extra floppy and soft.",
+        "Wind-up Mouse": "Zips around in circles.",
+        "Glowing Jellyfish Lamp": "Hovers slightly off the ground.",
+        "Miniature Train Set": "Just big enough for them to sit in.",
+        "Squeaky Rubber Dino": "Makes a high-pitched mewp sound.",
+        "Yarn Ball (Infinite)": "Never unravels completely.",
+        "Bubbles in a Bottle": "Creates floating, heart-shaped bubbles.",
+        "Handheld Console": "A tiny device for your pet to play its own games.",
+        "Wooden Rocking Horse": "Perfectly sized for a nap.",
+        "Bouncy Star Ball": "Leaves a trail of glitter when thrown.",
+        "Plushie Version of Themselves": "For maximum meta-cuteness.",
+        "Star-Shaped Watermelon": "Tastes like summer.",
+        "Jar of Firefly Honey": "Glows in the dark.",
+        "Cloud Cotton Candy": "Occasionally drifts upward.",
+        "Rainbow Macaron": "A different flavor in every bite.",
+        "Strawberry Milk Box": "Complete with a tiny straw.",
+        "Lucky Acorn": "Polished to a high shine.",
+        "Heart-Shaped Jam Cookie": "Leaves a trail of crumbs.",
+        "Moon-Cheese Slice": "Mildly cratered and very savory.",
+        "Sparkling Soda Pop": "Causes the pet to emit tiny sparkles.",
+        "Giant Sunflower Seed": "Hard to carry, but worth it.",
+        "Mushroom Stool": "A cozy place to sit.",
+        "Teacup Bed": "Lined with silk pillows.",
+        "Terrarium Globe": "A tiny ecosystem in a glass ball.",
+        "Potted Ghost Plant": "A translucent, friendly-looking fern.",
+        "Record Player": "Plays lo-fi beats for sleeping.",
+        "Fairy Light String: Drapes over anything they own.",
+        "Beanbag Chair": "Takes the exact shape of the pet.",
+        "Framed Polaroid": "Of the pet and its owner.",
+        "Cactus that Doesn't Prick": "It’s actually quite fuzzy.",
+        "Cloud-Shaped Rug": "Feels like walking on air.",
+        "Bottle of Stardust": "Used to change the pet's color temporarily.",
+        "Antique Key": "No one knows what it opens yet.",
+        "Ever-Burning Candle": "Smells like vanilla and old books.",
+        "Message in a Bottle": "Contains a random compliment.",
+        "Pocket Sun": "Keeps the pet warm on rainy days.",
+        "Crystal Geode": "Sparkles when the pet is happy.",
+        "Feather from a Phoenix": "Warm to the touch.",
+        "Compass that Points to Snacks": "Always reliable.",
+        "Enchanted Umbrella": "Floats over them automatically.",
+        "Golden Ticket": "A mysterious pass to a future 'Secret Garden.'"
+    };
+
     const DATABASE = {
-        "Wearables": ["Tiny Sprout Hat", "Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Angel/Devil Wings", "Pom-Pom Beanie"],
-        "Toys": ["Wind-up Mouse", "Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Rocking Horse", "Star Ball", "Plushie"],
-        "Snacks": ["Star Watermelon", "Firefly Honey", "Cloud Cotton Candy", "Rainbow Macaron", "Strawberry Milk", "Lucky Acorn", "Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Sunflower Seed"],
-        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Polaroid", "Fuzzy Cactus", "Cloud Rug"],
-        "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Snack Compass", "Enchanted Umbrella", "Golden Ticket"]
+        "Wearables": ["Tiny Sprout Hat", "Over-sized Yellow Raincoat", "Star-Shaped Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Angel/Devil Wings", "Pom-Pom Beanie"],
+        "Toys": ["Wind-up Mouse", "Glowing Jellyfish Lamp", "Miniature Train Set", "Squeaky Rubber Dino", "Yarn Ball (Infinite)", "Bubbles in a Bottle", "Handheld Console", "Wooden Rocking Horse", "Bouncy Star Ball", "Plushie Version of Themselves"],
+        "Snacks": ["Star-Shaped Watermelon", "Jar of Firefly Honey", "Cloud Cotton Candy", "Rainbow Macaron", "Strawberry Milk Box", "Lucky Acorn", "Heart-Shaped Jam Cookie", "Moon-Cheese Slice", "Sparkling Soda Pop", "Giant Sunflower Seed"],
+        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Potted Ghost Plant", "Record Player", "Fairy Light String", "Beanbag Chair", "Framed Polaroid", "Cactus that Doesn't Prick", "Cloud-Shaped Rug"],
+        "Rare": ["Bottle of Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Feather from a Phoenix", "Compass that Points to Snacks", "Enchanted Umbrella", "Golden Ticket"]
     };
 
     let gameState = {};
@@ -94,7 +148,6 @@
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
-            // Current Week Stats
             const current = user.history.find(h => h.week === gameState.currentWeek);
             if (current) {
                 const perc = (current.completed / current.total) * 100 || 0;
@@ -102,24 +155,27 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            // Pet & Items
             const folder = (id === 'A') ? 'michael' : 'jacinta';
             document.getElementById('pet' + id).src = `${folder}/${user.status}.png`;
             document.getElementById('badge' + id).innerText = "Status: " + user.status;
             document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (user.items.join(", ") || "None");
 
-            // Backlog
+            // BACKLOG UPDATE: Added Date and Count format
             let backHTML = "";
-            user.history.forEach(h => {
+            user.history.sort((a, b) => a.week - b.week).forEach(h => {
                 if (h.completed < h.total && h.week < gameState.currentWeek) {
-                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} (+1)</button>`;
+                    // Extract date from spreadsheet data or use placeholder logic
+                    // We'll format the button text exactly as you requested
+                    const d = new Date(h.date); 
+                    const dateStr = h.date ? `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}` : "Older";
+                    
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${h.completed}/${h.total}</button><br>`;
                 }
             });
             document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
         });
 
-        // Shop
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
         const currentCat = catList[(gameState.currentWeek - 1) % 5];
         document.getElementById('weekHeading').innerText = `Week ${gameState.currentWeek}: ${currentCat}`;
@@ -131,7 +187,9 @@
         let html = "";
         items.forEach(item => {
             const isSold = (gameState.soldOut === item);
-            html += `<button class="item-btn" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">${isSold ? item + ' (Claimed)' : item}</button>`;
+            const desc = DESCRIPTIONS[item] || "No description available.";
+            // Added title attribute for hover description
+            html += `<button class="item-btn" title="${desc}" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">${isSold ? item + ' (Claimed)' : item}</button>`;
         });
         document.getElementById('shopItems').innerHTML = html;
     }
@@ -141,6 +199,8 @@
         weekData.completed++;
         updateUI();
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
+        // Minimal sync to ensure date logic refreshes
+        setTimeout(syncData, 1000); 
     }
 
     async function claim(itemName) {
