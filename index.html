@@ -6,196 +6,175 @@
     <title>Note Guardian: The Competition</title>
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: #2d3436; margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-        .pet-sprite { width: 150px; height: 150px; object-fit: contain; margin: 10px auto; display: block; }
-        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.75em; margin-bottom: 10px; text-transform: uppercase; }
+        .pet-sprite { width: 120px; height: 120px; object-fit: contain; margin: 10px auto; display: block; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; margin-bottom: 10px; }
         .status-happy { background: #55efc4; color: #00b894; }
         .status-tired { background: #ffeaa7; color: #fdcb6e; }
         .status-sick { background: #fab1a0; color: #e17055; }
         .status-coma { background: #a29bfe; color: #6c5ce7; }
         .progress-container { background: #eee; height: 25px; border-radius: 12px; margin: 15px 0; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease-in-out; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease; }
         .backlog-section { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; text-align: left; font-size: 0.85em; }
-        .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 6px 10px; border-radius: 6px; cursor: pointer; margin: 4px 0; display: block; width: 100%; text-align: left; font-size: 0.9em; transition: background 0.2s; }
-        .backlog-btn:hover { background: #d1c9ff; }
+        .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; }
         .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; }
-        .item-btn { background: #6c5ce7; border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin: 5px; font-weight: bold; }
-        .item-btn:hover { background: #a29bfe; }
-        .item-btn:disabled { background: #555; opacity: 0.5; cursor: not-allowed; }
-        button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; font-size: 1em; }
-        button.action-btn:active { transform: scale(0.98); }
-        #weekHeading { text-align: center; color: var(--primary); margin-bottom: 20px; }
+        .item-btn { background: #6c5ce7; border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .item-btn:disabled { background: #555; opacity: 0.6; }
+        button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1 style="text-align:center;">🐾 Note Guardians</h1>
-    <h3 id="weekHeading">Syncing with Sheet...</h3>
+    <h3 id="weekHeading" style="text-align:center; color: #6c5ce7;">Syncing with Sheet...</h3>
 
     <div class="stats-grid">
         <div class="user-card">
-            <img id="petA" class="pet-sprite" src="michael/happy.png" alt="Michael's Pet">
+            <img id="petA" class="pet-sprite" src="michael/happy.png">
             <div id="badgeA" class="status-badge status-happy">Status: Happy</div>
-            <h2 style="margin: 10px 0;">Michael</h2>
+            <h3>Michael</h3>
             <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
-            <p id="txtA">Loading...</p>
-            <button class="action-btn" onclick="addNote('userA')">+1 Current Note</button>
+            <p id="txtA">0 / 0 (0%)</p>
+            <button class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
             <div class="backlog-section">
                 <strong>Overdue Notes:</strong>
-                <div id="historyA" style="margin-top: 8px;">None! ✨</div>
+                <div id="historyA">None! ✨</div>
             </div>
-            <p id="invA" style="font-size: 0.8em; color: #666; margin-top: 15px; font-style: italic;">🎒 Items: None</p>
+            <p id="invA" style="font-size: 0.8em; color: #666;">🎒 Items: None</p>
         </div>
 
         <div class="user-card">
-            <img id="petB" class="pet-sprite" src="jacinta/happy.png" alt="Jacinta's Pet">
+            <img id="petB" class="pet-sprite" src="jacinta/happy.png">
             <div id="badgeB" class="status-badge status-happy">Status: Happy</div>
-            <h2 style="margin: 10px 0;">Jacinta</h2>
+            <h3>Jacinta</h3>
             <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
-            <p id="txtB">Loading...</p>
-            <button class="action-btn" onclick="addNote('userB')">+1 Current Note</button>
+            <p id="txtB">0 / 0 (0%)</p>
+            <button class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
             <div class="backlog-section">
                 <strong>Overdue Notes:</strong>
-                <div id="historyB" style="margin-top: 8px;">None! ✨</div>
+                <div id="historyB">None! ✨</div>
             </div>
-            <p id="invB" style="font-size: 0.8em; color: #666; margin-top: 15px; font-style: italic;">🎒 Items: None</p>
+            <p id="invB" style="font-size: 0.8em; color: #666;">🎒 Items: None</p>
         </div>
     </div>
 
     <div class="shop-box">
         <h3>🎁 Weekly Reward Draft</h3>
-        <p id="shopDesc" style="font-size: 0.9em; margin-bottom: 15px; opacity: 0.8;">Complete current notes to claim. Hover for details!</p>
+        <p style="font-size: 0.8em; opacity: 0.7;">Hover over items to see descriptions!</p>
         <div id="shopItems"></div>
     </div>
 </div>
 
 <script>
-    // PASTE YOUR FRESH DEPLOY URL HERE
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
     const DESCRIPTIONS = {
         "Tiny Sprout Hat": "A single green leaf that 'grows' from their head.",
-        "Over-sized Yellow Raincoat": "Complete with little matching boots.",
-        "Star-Shaped Sunglasses": "For that celebrity-on-vacation look.",
+        "Yellow Raincoat": "Complete with little matching boots.",
+        "Star Sunglasses": "For that celebrity-on-vacation look.",
         "Crocheted Scarf": "Long enough to trail slightly behind them.",
         "Flower Crown": "Made of daisies that never wilt.",
         "Polka-Dot Bowtie": "Automatically straightens itself.",
         "Paper Bag Mask": "With a hand-drawn smiley face on it.",
         "Cardboard Armor": "For the brave (but fragile) adventurer.",
-        "Angel/Devil Wings": "Tiny fluttering attachments.",
+        "Wings": "Tiny fluttering attachments.",
         "Pom-Pom Beanie": "Extra floppy and soft.",
         "Wind-up Mouse": "Zips around in circles.",
-        "Glowing Jellyfish Lamp": "Hovers slightly off the ground.",
-        "Miniature Train Set": "Just big enough for them to sit in.",
-        "Squeaky Rubber Dino": "Makes a high-pitched mewp sound.",
-        "Yarn Ball (Infinite)": "Never unravels completely.",
-        "Bubbles in a Bottle": "Creates floating, heart-shaped bubbles.",
+        "Jellyfish Lamp": "Hovers slightly off the ground.",
+        "Miniature Train": "Just big enough for them to sit in.",
+        "Squeaky Dino": "Makes a high-pitched mewp sound.",
+        "Infinite Yarn": "Never unravels completely.",
+        "Heart Bubbles": "Creates floating, heart-shaped bubbles.",
         "Handheld Console": "A tiny device for your pet to play its own games.",
-        "Wooden Rocking Horse": "Perfectly sized for a nap.",
-        "Bouncy Star Ball": "Leaves a trail of glitter when thrown.",
-        "Plushie Version of Themselves": "For maximum meta-cuteness.",
-        "Star-Shaped Watermelon": "Tastes like summer.",
-        "Jar of Firefly Honey": "Glows in the dark.",
+        "Rocking Horse": "Perfectly sized for a nap.",
+        "Star Ball": "Leaves a trail of glitter when thrown.",
+        "Plushie": "For maximum meta-cuteness.",
+        "Star Watermelon": "Tastes like summer.",
+        "Firefly Honey": "Glows in the dark.",
         "Cloud Cotton Candy": "Occasionally drifts upward.",
         "Rainbow Macaron": "A different flavor in every bite.",
-        "Strawberry Milk Box": "Complete with a tiny straw.",
+        "Strawberry Milk": "Complete with a tiny straw.",
         "Lucky Acorn": "Polished to a high shine.",
-        "Heart-Shaped Jam Cookie": "Leaves a trail of crumbs.",
-        "Moon-Cheese Slice": "Mildly cratered and very savory.",
-        "Sparkling Soda Pop": "Causes the pet to emit tiny sparkles.",
-        "Giant Sunflower Seed": "Hard to carry, but worth it.",
+        "Jam Cookie": "Leaves a trail of crumbs.",
+        "Moon-Cheese": "Mildly cratered and very savory.",
+        "Sparkling Soda": "Causes the pet to emit tiny sparkles.",
+        "Sunflower Seed": "Hard to carry, but worth it.",
         "Mushroom Stool": "A cozy place to sit.",
         "Teacup Bed": "Lined with silk pillows.",
         "Terrarium Globe": "A tiny ecosystem in a glass ball.",
-        "Potted Ghost Plant": "A translucent, friendly-looking fern.",
+        "Ghost Plant": "A translucent, friendly-looking fern.",
         "Record Player": "Plays lo-fi beats for sleeping.",
-        "Fairy Light String": "Drapes over anything they own.",
+        "Fairy Lights": "Drapes over anything they own.",
         "Beanbag Chair": "Takes the exact shape of the pet.",
-        "Framed Polaroid": "Of the pet and its owner.",
-        "Cactus that Doesn't Prick": "It’s actually quite fuzzy.",
-        "Cloud-Shaped Rug": "Feels like walking on air.",
-        "Bottle of Stardust": "Used to change the pet's color temporarily.",
+        "Polaroid": "Of the pet and its owner (you!).",
+        "Fuzzy Cactus": "It’s actually quite fuzzy.",
+        "Cloud Rug": "Feels like walking on air.",
+        "Stardust": "Used to change the pet's color temporarily.",
         "Antique Key": "No one knows what it opens yet.",
         "Ever-Burning Candle": "Smells like vanilla and old books.",
-        "Message in a Bottle": "Contains a random compliment.",
+        "Message Bottle": "Contains a random compliment.",
         "Pocket Sun": "Keeps the pet warm on rainy days.",
         "Crystal Geode": "Sparkles when the pet is happy.",
-        "Feather from a Phoenix": "Warm to the touch.",
-        "Compass that Points to Snacks": "Always reliable.",
-        "Enchanted Umbrella": "Floats over them automatically.",
+        "Phoenix Feather": "Warm to the touch.",
+        "Snack Compass": "Always reliable.",
+        "Enchanted Umbrella": "Floats over them automatically when it rains.",
         "Golden Ticket": "A mysterious pass to a future 'Secret Garden.'"
     };
 
     const DATABASE = {
-        "Wearables": ["Tiny Sprout Hat", "Over-sized Yellow Raincoat", "Star-Shaped Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Angel/Devil Wings", "Pom-Pom Beanie"],
-        "Toys": ["Wind-up Mouse", "Glowing Jellyfish Lamp", "Miniature Train Set", "Squeaky Rubber Dino", "Yarn Ball (Infinite)", "Bubbles in a Bottle", "Handheld Console", "Wooden Rocking Horse", "Bouncy Star Ball", "Plushie Version of Themselves"],
-        "Snacks": ["Star-Shaped Watermelon", "Jar of Firefly Honey", "Cloud Cotton Candy", "Rainbow Macaron", "Strawberry Milk Box", "Lucky Acorn", "Heart-Shaped Jam Cookie", "Moon-Cheese Slice", "Sparkling Soda Pop", "Giant Sunflower Seed"],
-        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Potted Ghost Plant", "Record Player", "Fairy Light String", "Beanbag Chair", "Framed Polaroid", "Cactus that Doesn't Prick", "Cloud-Shaped Rug"],
-        "Rare": ["Bottle of Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Feather from a Phoenix", "Compass that Points to Snacks", "Enchanted Umbrella", "Golden Ticket"]
+        "Wearables": ["Tiny Sprout Hat", "Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Wings", "Pom-Pom Beanie"],
+        "Toys": ["Wind-up Mouse", "Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Rocking Horse", "Star Ball", "Plushie"],
+        "Snacks": ["Star Watermelon", "Firefly Honey", "Cloud Cotton Candy", "Rainbow Macaron", "Strawberry Milk", "Lucky Acorn", "Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Sunflower Seed"],
+        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Polaroid", "Fuzzy Cactus", "Cloud Rug"],
+        "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Snack Compass", "Enchanted Umbrella", "Golden Ticket"]
     };
 
-    let gameState = null;
+    let gameState = {};
 
     async function syncData() {
         try {
-            console.log("Fetching data...");
-            const response = await fetch(API_URL, {
-                method: 'GET',
-                redirect: 'follow'
-            });
-            const data = await response.json();
-            gameState = data;
-            console.log("Data received:", gameState);
+            const response = await fetch(API_URL);
+            gameState = await response.json();
             updateUI();
-        } catch (e) {
-            console.error("Sync error:", e);
-            document.getElementById('weekHeading').innerText = "Sync Failed - Check Internet/Permissions";
-        }
+        } catch (e) { console.log("Sync failed"); }
     }
 
     function updateUI() {
-        if (!gameState) return;
-
         ['userA', 'userB'].forEach(u => {
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
-            const folder = (id === 'A') ? 'michael' : 'jacinta';
             
-            // 1. Progress for current week
-            const current = user.history.find(h => h.week == gameState.currentWeek);
+            const current = user.history.find(h => h.week === gameState.currentWeek);
             if (current) {
                 const perc = (current.completed / current.total) * 100 || 0;
                 document.getElementById('bar' + id).style.width = perc + "%";
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            // 2. Pet Image and Status
+            const folder = (id === 'A') ? 'michael' : 'jacinta';
             document.getElementById('pet' + id).src = `${folder}/${user.status}.png`;
             document.getElementById('badge' + id).innerText = "Status: " + user.status;
             document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
-            
-            // 3. Inventory
-            document.getElementById('inv' + id).innerText = "🎒 Items: " + (user.items.length > 0 ? user.items.join(", ") : "None");
+            document.getElementById('inv' + id).innerText = "🎒 Items: " + (user.items.join(", ") || "None");
 
-            // 4. Backlog Buttons
             let backHTML = "";
-            user.history.sort((a,b) => a.week - b.week).forEach(h => {
+            user.history.forEach(h => {
                 if (h.completed < h.total && h.week < gameState.currentWeek) {
-                    const d = new Date(h.date);
-                    const dateStr = h.date && !isNaN(d.getTime()) ? `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}` : "Earlier";
-                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} (${dateStr}) [+1] ${h.completed}/${h.total}</button>`;
+                    // NEW: Formatting button text with Date and Count
+                    let rawDate = new Date(h.date);
+                    let dateStr = !isNaN(rawDate) ? rawDate.toLocaleDateString('en-AU') : "";
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${h.completed}/${h.total}</button><br>`;
                 }
             });
             document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
         });
 
-        // 5. Global Shop Info
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
-        const currentCat = catList[(gameState.currentWeek - 1) % 5] || "Wearables";
+        const currentCat = catList[(gameState.currentWeek - 1) % 5];
         document.getElementById('weekHeading').innerText = `Week ${gameState.currentWeek}: ${currentCat}`;
         renderShop(currentCat);
     }
@@ -205,48 +184,31 @@
         let html = "";
         items.forEach(item => {
             const isSold = (gameState.soldOut === item);
-            const desc = DESCRIPTIONS[item] || "";
-            html += `<button class="item-btn" title="${desc}" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">${isSold ? item + ' (Claimed)' : item}</button>`;
+            const tooltip = DESCRIPTIONS[item] || "A special item!";
+            // NEW: Added title attribute for hover descriptions
+            html += `<button class="item-btn" title="${tooltip}" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">${isSold ? item + ' (Claimed)' : item}</button>`;
         });
         document.getElementById('shopItems').innerHTML = html;
     }
 
-    async function addNote(user, weekID = null) {
-        const targetWeek = weekID || gameState.currentWeek;
-        const weekData = gameState[user].history.find(h => h.week == targetWeek);
-        if (!weekData) return;
-        
+    async function addNote(user, weekID) {
+        const weekData = gameState[user].history.find(h => h.week === weekID);
         weekData.completed++;
         updateUI();
-        
-        // POST to Google
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user, weekID: targetWeek, newCount: weekData.completed })
-        });
-        
-        // Refresh to confirm sheet update
-        setTimeout(syncData, 1500); 
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
     }
 
     async function claim(itemName) {
-        const user = prompt("Who is claiming? (userA for Michael / userB for Jacinta)").trim();
-        if (!gameState[user]) return;
-        
-        const current = gameState[user].history.find(h => h.week == gameState.currentWeek);
+        const user = prompt("Who is claiming? (userA/userB)").trim();
+        const current = gameState[user].history.find(h => h.week === gameState.currentWeek);
         if (current.completed < current.total) return alert("Finish your current notes first!");
         
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName }) });
         syncData();
     }
 
-    // Initial load
+    setInterval(syncData, 30000);
     syncData();
-    // Refresh every minute
-    setInterval(syncData, 60000);
 </script>
 </body>
 </html>
