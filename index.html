@@ -19,7 +19,7 @@
         .progress-container { background: #eee; height: 25px; border-radius: 12px; margin: 15px 0; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease; }
         .backlog-section { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; text-align: left; font-size: 0.85em; }
-        .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; }
+        .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; font-size: 0.9em; }
         .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; }
         .item-btn { background: #6c5ce7; border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; margin: 5px; }
         .item-btn:disabled { background: #555; opacity: 0.6; }
@@ -39,7 +39,7 @@
             <h3>Michael</h3>
             <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
             <p id="txtA">0 / 0 (0%)</p>
-            <button class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
+            <button class="action-btn" onclick="addNote('userA')">+1 Current Note</button>
             <div class="backlog-section">
                 <strong>Overdue Notes:</strong>
                 <div id="historyA">None! ✨</div>
@@ -53,7 +53,7 @@
             <h3>Jacinta</h3>
             <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
             <p id="txtB">0 / 0 (0%)</p>
-            <button class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
+            <button class="action-btn" onclick="addNote('userB')">+1 Current Note</button>
             <div class="backlog-section">
                 <strong>Overdue Notes:</strong>
                 <div id="historyB">None! ✨</div>
@@ -71,7 +71,6 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
-    // Item Descriptions for Hover tooltips
     const DESCRIPTIONS = {
         "Tiny Sprout Hat": "A single green leaf that 'grows' from their head.",
         "Over-sized Yellow Raincoat": "Complete with little matching boots.",
@@ -108,7 +107,7 @@
         "Terrarium Globe": "A tiny ecosystem in a glass ball.",
         "Potted Ghost Plant": "A translucent, friendly-looking fern.",
         "Record Player": "Plays lo-fi beats for sleeping.",
-        "Fairy Light String: Drapes over anything they own.",
+        "Fairy Light String": "Drapes over anything they own.",
         "Beanbag Chair": "Takes the exact shape of the pet.",
         "Framed Polaroid": "Of the pet and its owner.",
         "Cactus that Doesn't Prick": "It’s actually quite fuzzy.",
@@ -133,21 +132,28 @@
         "Rare": ["Bottle of Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Feather from a Phoenix", "Compass that Points to Snacks", "Enchanted Umbrella", "Golden Ticket"]
     };
 
-    let gameState = {};
+    let gameState = null;
 
     async function syncData() {
         try {
             const response = await fetch(API_URL);
             gameState = await response.json();
             updateUI();
-        } catch (e) { console.log("Sync failed"); }
+        } catch (e) { 
+            console.error("Sync failed:", e);
+            document.getElementById('weekHeading').innerText = "Sync Failed - Check Internet";
+        }
     }
 
     function updateUI() {
+        if (!gameState) return;
+
         ['userA', 'userB'].forEach(u => {
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
+            const folder = (id === 'A') ? 'michael' : 'jacinta';
             
+            // 1. Progress Bar
             const current = user.history.find(h => h.week === gameState.currentWeek);
             if (current) {
                 const perc = (current.completed / current.total) * 100 || 0;
@@ -155,27 +161,25 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            const folder = (id === 'A') ? 'michael' : 'jacinta';
+            // 2. Pet Info
             document.getElementById('pet' + id).src = `${folder}/${user.status}.png`;
             document.getElementById('badge' + id).innerText = "Status: " + user.status;
             document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (user.items.join(", ") || "None");
 
-            // BACKLOG UPDATE: Added Date and Count format
+            // 3. Backlog Buttons
             let backHTML = "";
             user.history.sort((a, b) => a.week - b.week).forEach(h => {
                 if (h.completed < h.total && h.week < gameState.currentWeek) {
-                    // Extract date from spreadsheet data or use placeholder logic
-                    // We'll format the button text exactly as you requested
-                    const d = new Date(h.date); 
+                    const d = new Date(h.date);
                     const dateStr = h.date ? `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}` : "Older";
-                    
-                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${h.completed}/${h.total}</button><br>`;
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} (${dateStr}) [+1] ${h.completed}/${h.total}</button><br>`;
                 }
             });
             document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
         });
 
+        // 4. Shop & Heading
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
         const currentCat = catList[(gameState.currentWeek - 1) % 5];
         document.getElementById('weekHeading').innerText = `Week ${gameState.currentWeek}: ${currentCat}`;
@@ -188,32 +192,44 @@
         items.forEach(item => {
             const isSold = (gameState.soldOut === item);
             const desc = DESCRIPTIONS[item] || "No description available.";
-            // Added title attribute for hover description
             html += `<button class="item-btn" title="${desc}" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">${isSold ? item + ' (Claimed)' : item}</button>`;
         });
         document.getElementById('shopItems').innerHTML = html;
     }
 
-    async function addNote(user, weekID) {
-        const weekData = gameState[user].history.find(h => h.week === weekID);
+    async function addNote(user, weekID = null) {
+        const targetWeek = weekID || gameState.currentWeek;
+        const weekData = gameState[user].history.find(h => h.week === targetWeek);
+        if (!weekData) return;
+        
         weekData.completed++;
         updateUI();
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
-        // Minimal sync to ensure date logic refreshes
+        await fetch(API_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', // Helps with some browser security blocks
+            body: JSON.stringify({ user, weekID: targetWeek, newCount: weekData.completed }) 
+        });
         setTimeout(syncData, 1000); 
     }
 
     async function claim(itemName) {
-        const user = prompt("Who is claiming? (userA/userB)").trim();
+        const user = prompt("Who is claiming? (userA for Michael / userB for Jacinta)").trim();
+        if (!gameState[user]) return;
+        
         const current = gameState[user].history.find(h => h.week === gameState.currentWeek);
         if (current.completed < current.total) return alert("Finish your current notes first!");
         
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName }) });
-        syncData();
+        await fetch(API_URL, { 
+            method: 'POST', 
+            mode: 'no-cors',
+            body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName }) 
+        });
+        setTimeout(syncData, 1000);
     }
 
-    setInterval(syncData, 30000);
+    // Initial Start
     syncData();
+    setInterval(syncData, 30000);
 </script>
 </body>
 </html>
