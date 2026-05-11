@@ -154,8 +154,8 @@
 
     const DATABASE = {
         "Wearables": ["Tiny Sprout Hat", "Over-sized Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Wings", "Pom-Pom Beanie"],
-        "Toys": ["Wind-up Mouse", "Glowing Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Wooden Rocking Horse", "Bouncy Star Ball", "Plushie of themselves"],
-        "Snacks": ["Star-shaped Watermelon", "Firefly Honey", "Cotton Candy CLoud", "Rainbow Macaron", "Strawberry Milk Box", "Lucky Acorn", "Heart-shaped Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Giant Sunflower Seed"],
+        "Toys": ["Wind-up Mouse", "GLowing Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Wooden Rocking Horse", "Bouncy Star Ball", "Plushie of themselves"],
+        "Snacks": ["Star-shaped Watermelon", "Firefly Honey", "Cotton Candy Cloud", "Rainbow Macaron", "Strawberry Milk Box", "Lucky Acorn", "Heart-shaped Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Giant Sunflower Seed"],
         "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Framed Polaroid", "No-prick Cactus", "Cloud Rug"],
         "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Compass that points to snacks", "Enchanted Umbrella", "Golden Ticket"]
     };
@@ -193,64 +193,4 @@
                 if (h.completed < h.total && h.week < gameState.currentWeek) {
                     let rawDate = new Date(h.date);
                     let dateStr = !isNaN(rawDate) ? rawDate.toLocaleDateString('en-AU') : "";
-                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${h.completed}/${h.total}</button><br>`;
-                }
-            });
-            document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
-        });
-
-        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
-        const currentCat = catList[(gameState.currentWeek - 1) % 5];
-        document.getElementById('weekHeading').innerText = `Week ${gameState.currentWeek}: ${currentCat}`;
-        renderShop(currentCat);
-    }
-
-    function renderShop(category) {
-        // Randomize items based on the WeekID seed
-        let allItems = [...DATABASE[category]];
-        let seed = gameState.currentWeek;
-        
-        let shuffled = allItems.sort(() => {
-            const hash = (seed * 9301 + 49297) % 233280;
-            seed = hash;
-            return (hash / 233280) - 0.5;
-        });
-
-        const weeklyItems = shuffled.slice(0, 3);
-
-        let html = "";
-        weeklyItems.forEach(item => {
-            const isSold = (gameState.soldOut === item);
-            const tooltip = DESCRIPTIONS[item] || "A special item!";
-            html += `
-                <div class="item-wrapper">
-                    <button class="item-btn" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">
-                        ${isSold ? item + ' (Claimed)' : item}
-                    </button>
-                    <span class="tooltip-text">${tooltip}</span>
-                </div>`;
-        });
-        document.getElementById('shopItems').innerHTML = html;
-    }
-
-    async function addNote(user, weekID) {
-        const weekData = gameState[user].history.find(h => h.week === weekID);
-        weekData.completed++;
-        updateUI();
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
-    }
-
-    async function claim(itemName) {
-        const user = prompt("Who is claiming? (userA/userB)").trim();
-        const current = gameState[user].history.find(h => h.week === gameState.currentWeek);
-        if (current.completed < current.total) return alert("Finish your current notes first!");
-        
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName }) });
-        syncData();
-    }
-
-    setInterval(syncData, 30000);
-    syncData();
-</script>
-</body>
-</html>
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${
