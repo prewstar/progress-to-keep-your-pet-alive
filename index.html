@@ -21,35 +21,13 @@
         .backlog-section { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; text-align: left; font-size: 0.85em; }
         .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; }
         .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; position: relative; }
-        
-        /* Custom Tooltip Styling */
         .item-wrapper { position: relative; display: inline-block; }
         .item-btn { background: #6c5ce7; border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin: 5px; font-weight: bold; }
         .item-btn:disabled { background: #555; opacity: 0.6; }
-        
-        .tooltip-text {
-            visibility: hidden;
-            width: 160px;
-            background-color: #fffa65;
-            color: #333;
-            text-align: center;
-            border-radius: 10px;
-            padding: 10px;
-            position: absolute;
-            z-index: 10;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -80px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            font-weight: bold;
-            border: 2px solid #333;
-            font-size: 0.9em;
-            line-height: 1.2;
-        }
+        .tooltip-text { visibility: hidden; width: 160px; background-color: #fffa65; color: #333; text-align: center; border-radius: 10px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight: bold; border: 2px solid #333; font-size: 0.9em; line-height: 1.2; }
         .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
         button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; }
     </style>
 </head>
 <body>
@@ -66,6 +44,7 @@
             <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
             <p id="txtA">0 / 0 (0%)</p>
             <button class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
+            <div id="claimA"></div>
             <div class="backlog-section">
                 <strong>Overdue Notes:</strong>
                 <div id="historyA">None! ✨</div>
@@ -80,6 +59,7 @@
             <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
             <p id="txtB">0 / 0 (0%)</p>
             <button class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
+            <div id="claimB"></div>
             <div class="backlog-section">
                 <strong>Overdue Notes:</strong>
                 <div id="historyB">None! ✨</div>
@@ -89,14 +69,13 @@
     </div>
 
     <div class="shop-box">
-        <h3>🎁 Weekly Reward Draft</h3>
+        <h3 id="shopTitle">🎁 Weekly Reward Draft</h3>
         <div id="shopItems"></div>
     </div>
 </div>
 
 <script>
-    // MAKE SURE THIS URL IS YOUR LATEST DEPLOY URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
+    const API_URL = "YOUR_NEW_VERSION_URL";
     
     const DESCRIPTIONS = {
         "Tiny Sprout Hat": "🌱 A single green leaf that grows from their head.",
@@ -159,23 +138,25 @@
         "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Compass that points to snacks", "Enchanted Umbrella", "Golden Ticket"]
     };
 
-    let gameState = {};
+    let gameState = null;
+    let viewingWeek = null;
 
     async function syncData() {
         try {
             const response = await fetch(API_URL);
             gameState = await response.json();
+            if(!viewingWeek) viewingWeek = gameState.currentWeek;
             updateUI();
         } catch (e) { console.log("Sync failed"); }
     }
 
     function updateUI() {
-        if (!gameState.userA) return; // Wait for handshake
-
+        if(!gameState) return;
         ['userA', 'userB'].forEach(u => {
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
+            // Current Week Stats
             const current = user.history.find(h => h.week == gameState.currentWeek);
             if (current) {
                 const perc = (current.completed / current.total) * 100 || 0;
@@ -183,32 +164,46 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            const folder = (id === 'A') ? 'michael' : 'jacinta';
-            document.getElementById('pet' + id).src = `${folder}/${user.status}.png`;
+            // Inventory & Status
+            const allItems = user.history.map(h => h.claimedItem).filter(i => i);
+            document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
+            document.getElementById('pet' + id).src = `${(id==='A'?'michael':'jacinta')}/${user.status}.png`;
             document.getElementById('badge' + id).innerText = "Status: " + user.status;
             document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
-            document.getElementById('inv' + id).innerText = "🎒 Items: " + (user.items.join(", ") || "None");
 
+            // Backlog & Previous Week Claims
             let backHTML = "";
-            user.history.forEach(h => {
-                if (h.completed < h.total && h.week < gameState.currentWeek) {
-                    let rawDate = new Date(h.date);
-                    let dateStr = !isNaN(rawDate) ? rawDate.toLocaleDateString('en-AU') : "";
-                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${h.completed}/${h.total}</button><br>`;
+            let claimAlert = "";
+            user.history.sort((a,b) => a.week - b.week).forEach(h => {
+                const isDone = h.completed >= h.total;
+                if (!isDone && h.week < gameState.currentWeek) {
+                    let d = new Date(h.date);
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} (${d.getDate()}/${d.getMonth()+1}) (+1) ${h.completed}/${h.total}</button><br>`;
+                }
+                // If they finished a previous week OR current week but HAVEN'T claimed yet
+                if (isDone && !h.claimedItem && (h.week == gameState.currentWeek || h.week == gameState.currentWeek - 1)) {
+                    claimAlert += `<div class="claim-alert" onclick="showShop(${h.week})">🎁 Claim Week ${h.week} Reward!</div>`;
                 }
             });
             document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
+            document.getElementById('claim' + id).innerHTML = claimAlert;
         });
 
-        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
-        const currentCat = catList[(gameState.currentWeek - 1) % 5];
-        document.getElementById('weekHeading').innerText = `Week ${gameState.currentWeek}: ${currentCat}`;
-        renderShop(currentCat);
+        renderShop();
     }
 
-    function renderShop(category) {
-        let allItems = [...DATABASE[category]];
-        let seed = gameState.currentWeek;
+    function showShop(weekID) {
+        viewingWeek = weekID;
+        updateUI();
+    }
+
+    function renderShop() {
+        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
+        const currentCat = catList[(viewingWeek - 1) % 5];
+        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${currentCat})`;
+
+        let allItems = [...DATABASE[currentCat]];
+        let seed = viewingWeek;
         let shuffled = allItems.sort(() => {
             const hash = (seed * 9301 + 49297) % 233280;
             seed = hash;
@@ -217,9 +212,13 @@
 
         const weeklyItems = shuffled.slice(0, 3);
         let html = "";
+        
+        // Find who claimed what for this specific week
+        const weekClaims = [gameState.userA.history.find(h=>h.week==viewingWeek)?.claimedItem, 
+                           gameState.userB.history.find(h=>h.week==viewingWeek)?.claimedItem];
+
         weeklyItems.forEach(item => {
-            // Check both Michael (soldOutA) and Jacinta (soldOutB)
-            const isSold = (gameState.soldOutA === item || gameState.soldOutB === item);
+            const isSold = weekClaims.includes(item);
             const tooltip = DESCRIPTIONS[item] || "A special item!";
             html += `
                 <div class="item-wrapper">
@@ -242,16 +241,17 @@
     async function claim(itemName) {
         const user = prompt("Who is claiming? (userA for Michael / userB for Jacinta)").trim();
         if (!gameState[user]) return;
-
-        const current = gameState[user].history.find(h => h.week == gameState.currentWeek);
-        if (current.completed < current.total) return alert("Finish your current notes first!");
+        const weekData = gameState[user].history.find(h => h.week == viewingWeek);
+        if (weekData.completed < weekData.total) return alert("Finish that week's notes first!");
         
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName }) });
+        const resp = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: viewingWeek, newItem: itemName }) });
+        const result = await resp.text();
+        if(result === "ALREADY_TAKEN") alert("Too slow! Your opponent already claimed this one.");
         syncData();
     }
 
-    setInterval(syncData, 30000);
     syncData();
+    setInterval(syncData, 30000);
 </script>
 </body>
 </html>
