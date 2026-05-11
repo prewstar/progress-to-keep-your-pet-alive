@@ -27,7 +27,7 @@
         .tooltip-text { visibility: hidden; width: 160px; background-color: #fffa65; color: #333; text-align: center; border-radius: 10px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight: bold; border: 2px solid #333; font-size: 0.9em; line-height: 1.2; }
         .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
         button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
-        .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; }
+        .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -75,7 +75,7 @@
 </div>
 
 <script>
-    const API_URL = "YOUR_NEW_VERSION_URL";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
     const DESCRIPTIONS = {
         "Tiny Sprout Hat": "🌱 A single green leaf that grows from their head.",
@@ -145,44 +145,53 @@
         try {
             const response = await fetch(API_URL);
             gameState = await response.json();
+            // Default view to current week if not looking at a backlog
             if(!viewingWeek) viewingWeek = gameState.currentWeek;
             updateUI();
         } catch (e) { console.log("Sync failed"); }
     }
 
     function updateUI() {
-        if(!gameState) return;
+        if(!gameState || !gameState.userA || !gameState.userB) return;
+
         ['userA', 'userB'].forEach(u => {
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
-            // Current Week Stats
-            const current = user.history.find(h => h.week == gameState.currentWeek);
+            // Current Progress (Main Bar)
+            const current = user.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if (current) {
-                const perc = (current.completed / current.total) * 100 || 0;
+                const perc = (Number(current.completed) / Number(current.total)) * 100 || 0;
                 document.getElementById('bar' + id).style.width = perc + "%";
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            // Inventory & Status
+            // Inventory (Sum of all claimed items)
             const allItems = user.history.map(h => h.claimedItem).filter(i => i);
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
-            document.getElementById('pet' + id).src = `${(id==='A'?'michael':'jacinta')}/${user.status}.png`;
+            
+            // Sprite & Badge
+            const folder = (id === 'A') ? 'michael' : 'jacinta';
+            document.getElementById('pet' + id).src = `${folder}/${user.status}.png`;
             document.getElementById('badge' + id).innerText = "Status: " + user.status;
             document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
 
-            // Backlog & Previous Week Claims
+            // Backlog and Claim Alerts
             let backHTML = "";
             let claimAlert = "";
-            user.history.sort((a,b) => a.week - b.week).forEach(h => {
-                const isDone = h.completed >= h.total;
-                if (!isDone && h.week < gameState.currentWeek) {
+            user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
+                const isDone = Number(h.completed) >= Number(h.total);
+                const wNum = Number(h.week);
+                
+                if (!isDone && wNum < Number(gameState.currentWeek)) {
                     let d = new Date(h.date);
-                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} (${d.getDate()}/${d.getMonth()+1}) (+1) ${h.completed}/${h.total}</button><br>`;
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${wNum})">Week ${wNum} (${d.getDate()}/${d.getMonth()+1}) (+1) ${h.completed}/${h.total}</button><br>`;
                 }
-                // If they finished a previous week OR current week but HAVEN'T claimed yet
-                if (isDone && !h.claimedItem && (h.week == gameState.currentWeek || h.week == gameState.currentWeek - 1)) {
-                    claimAlert += `<div class="claim-alert" onclick="showShop(${h.week})">🎁 Claim Week ${h.week} Reward!</div>`;
+                
+                // Show claim alert if week is done but no item is recorded
+                // Limited to current week and 1 week prior
+                if (isDone && !h.claimedItem && (wNum === Number(gameState.currentWeek) || wNum === Number(gameState.currentWeek) - 1)) {
+                    claimAlert += `<div class="claim-alert" onclick="setShop(${wNum})">🎁 Claim Week ${wNum} Reward!</div>`;
                 }
             });
             document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
@@ -192,18 +201,18 @@
         renderShop();
     }
 
-    function showShop(weekID) {
+    function setShop(weekID) {
         viewingWeek = weekID;
         updateUI();
     }
 
     function renderShop() {
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
-        const currentCat = catList[(viewingWeek - 1) % 5];
+        const currentCat = catList[(Number(viewingWeek) - 1) % 5];
         document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${currentCat})`;
 
         let allItems = [...DATABASE[currentCat]];
-        let seed = viewingWeek;
+        let seed = Number(viewingWeek);
         let shuffled = allItems.sort(() => {
             const hash = (seed * 9301 + 49297) % 233280;
             seed = hash;
@@ -213,9 +222,11 @@
         const weeklyItems = shuffled.slice(0, 3);
         let html = "";
         
-        // Find who claimed what for this specific week
-        const weekClaims = [gameState.userA.history.find(h=>h.week==viewingWeek)?.claimedItem, 
-                           gameState.userB.history.find(h=>h.week==viewingWeek)?.claimedItem];
+        // Find if any items are sold out for THIS specific week
+        const weekClaims = [
+            gameState.userA.history.find(h => Number(h.week) === Number(viewingWeek))?.claimedItem,
+            gameState.userB.history.find(h => Number(h.week) === Number(viewingWeek))?.claimedItem
+        ];
 
         weeklyItems.forEach(item => {
             const isSold = weekClaims.includes(item);
@@ -232,7 +243,10 @@
     }
 
     async function addNote(user, weekID) {
-        const weekData = gameState[user].history.find(h => h.week == weekID);
+        const userHist = gameState[user].history;
+        const weekData = userHist.find(h => Number(h.week) === Number(weekID));
+        if(!weekData) return;
+        
         weekData.completed++;
         updateUI();
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
@@ -241,12 +255,16 @@
     async function claim(itemName) {
         const user = prompt("Who is claiming? (userA for Michael / userB for Jacinta)").trim();
         if (!gameState[user]) return;
-        const weekData = gameState[user].history.find(h => h.week == viewingWeek);
-        if (weekData.completed < weekData.total) return alert("Finish that week's notes first!");
+        const weekData = gameState[user].history.find(h => Number(h.week) === Number(viewingWeek));
+        
+        if (Number(weekData.completed) < Number(weekData.total)) {
+            return alert("Finish that week's notes first!");
+        }
         
         const resp = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: viewingWeek, newItem: itemName }) });
         const result = await resp.text();
         if(result === "ALREADY_TAKEN") alert("Too slow! Your opponent already claimed this one.");
+        
         syncData();
     }
 
