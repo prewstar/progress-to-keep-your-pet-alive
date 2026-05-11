@@ -22,7 +22,7 @@
         .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; }
         .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; position: relative; }
         
-        /* Custom Styled Tooltip */
+        /* Custom Tooltip Styling */
         .item-wrapper { position: relative; display: inline-block; }
         .item-btn { background: #6c5ce7; border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin: 5px; font-weight: bold; }
         .item-btn:disabled { background: #555; opacity: 0.6; }
@@ -48,9 +48,7 @@
             font-size: 0.9em;
             line-height: 1.2;
         }
-
         .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
-
         button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -97,6 +95,7 @@
 </div>
 
 <script>
+    // MAKE SURE THIS URL IS YOUR LATEST DEPLOY URL
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
     const DESCRIPTIONS = {
@@ -111,7 +110,7 @@
         "Wings": "👼 Tiny fluttering attachments.",
         "Pom-Pom Beanie": "👒 Extra floppy and soft.",
         "Wind-up Mouse": "🐭 Zips around in circles.",
-        "GLowing Jellyfish Lamp": "🏮 Hovers slightly off the ground.",
+        "Glowing Jellyfish Lamp": "🏮 Hovers slightly off the ground.",
         "Miniature Train": "🚂 Just big enough for them to sit in.",
         "Squeaky Dino": "🦖 Makes a high-pitched mewp sound.",
         "Infinite Yarn": "🧶 Never unravels completely.",
@@ -137,7 +136,7 @@
         "Record Player": "🎶 Plays lo-fi beats for sleeping.",
         "Fairy Lights": "🏮 Drapes over anything they own.",
         "Beanbag Chair": "💺 Takes the exact shape of the pet.",
-        "Framed Polaroid": "📸 Of the pet and its owner!",
+        "Polaroid": "📸 Of the pet and its owner!",
         "No-prick Cactus": "🌵 It’s actually quite fuzzy.",
         "Cloud Rug": "☁️ Feels like walking on air.",
         "Stardust": "✨ Change the pet's color temporarily.",
@@ -154,9 +153,9 @@
 
     const DATABASE = {
         "Wearables": ["Tiny Sprout Hat", "Over-sized Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Wings", "Pom-Pom Beanie"],
-        "Toys": ["Wind-up Mouse", "GLowing Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Wooden Rocking Horse", "Bouncy Star Ball", "Plushie of themselves"],
+        "Toys": ["Wind-up Mouse", "Glowing Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Wooden Rocking Horse", "Bouncy Star Ball", "Plushie of themselves"],
         "Snacks": ["Star-shaped Watermelon", "Firefly Honey", "Cotton Candy Cloud", "Rainbow Macaron", "Strawberry Milk Box", "Lucky Acorn", "Heart-shaped Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Giant Sunflower Seed"],
-        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Framed Polaroid", "No-prick Cactus", "Cloud Rug"],
+        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Polaroid", "No-prick Cactus", "Cloud Rug"],
         "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Compass that points to snacks", "Enchanted Umbrella", "Golden Ticket"]
     };
 
@@ -171,11 +170,13 @@
     }
 
     function updateUI() {
+        if (!gameState.userA) return; // Wait for handshake
+
         ['userA', 'userB'].forEach(u => {
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
-            const current = user.history.find(h => h.week === gameState.currentWeek);
+            const current = user.history.find(h => h.week == gameState.currentWeek);
             if (current) {
                 const perc = (current.completed / current.total) * 100 || 0;
                 document.getElementById('bar' + id).style.width = perc + "%";
@@ -193,4 +194,64 @@
                 if (h.completed < h.total && h.week < gameState.currentWeek) {
                     let rawDate = new Date(h.date);
                     let dateStr = !isNaN(rawDate) ? rawDate.toLocaleDateString('en-AU') : "";
-                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${h.week})">Week ${h.week} ${dateStr} (+1) ${h.completed}/${h.total}</button><br>`;
+                }
+            });
+            document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
+        });
+
+        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
+        const currentCat = catList[(gameState.currentWeek - 1) % 5];
+        document.getElementById('weekHeading').innerText = `Week ${gameState.currentWeek}: ${currentCat}`;
+        renderShop(currentCat);
+    }
+
+    function renderShop(category) {
+        let allItems = [...DATABASE[category]];
+        let seed = gameState.currentWeek;
+        let shuffled = allItems.sort(() => {
+            const hash = (seed * 9301 + 49297) % 233280;
+            seed = hash;
+            return (hash / 233280) - 0.5;
+        });
+
+        const weeklyItems = shuffled.slice(0, 3);
+        let html = "";
+        weeklyItems.forEach(item => {
+            // Check both Michael (soldOutA) and Jacinta (soldOutB)
+            const isSold = (gameState.soldOutA === item || gameState.soldOutB === item);
+            const tooltip = DESCRIPTIONS[item] || "A special item!";
+            html += `
+                <div class="item-wrapper">
+                    <button class="item-btn" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">
+                        ${isSold ? item + ' (Claimed)' : item}
+                    </button>
+                    <span class="tooltip-text">${tooltip}</span>
+                </div>`;
+        });
+        document.getElementById('shopItems').innerHTML = html;
+    }
+
+    async function addNote(user, weekID) {
+        const weekData = gameState[user].history.find(h => h.week == weekID);
+        weekData.completed++;
+        updateUI();
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
+    }
+
+    async function claim(itemName) {
+        const user = prompt("Who is claiming? (userA for Michael / userB for Jacinta)").trim();
+        if (!gameState[user]) return;
+
+        const current = gameState[user].history.find(h => h.week == gameState.currentWeek);
+        if (current.completed < current.total) return alert("Finish your current notes first!");
+        
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: gameState.currentWeek, newItem: itemName }) });
+        syncData();
+    }
+
+    setInterval(syncData, 30000);
+    syncData();
+</script>
+</body>
+</html>
