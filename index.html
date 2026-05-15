@@ -158,7 +158,7 @@
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
-            // Current Progress (Main Bar)
+            // 1. Current Progress (Main Bar)
             const current = user.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if (current) {
                 const perc = (Number(current.completed) / Number(current.total)) * 100 || 0;
@@ -166,17 +166,18 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            // Inventory (Sum of all claimed items)
+            // 2. Inventory (Sum of all claimed items)
             const allItems = user.history.map(h => h.claimedItem).filter(i => i);
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
             
-            // Sprite & Badge
+            // 3. Sprite & Badge (With Cache Buster Fix)
             const folder = (id === 'A') ? 'michael' : 'jacinta';
-            document.getElementById('pet' + id).src = `${folder}/${user.status}.png`;
+            // The ?v=${Date.now()} forces the browser to download the newest image from GitHub
+            document.getElementById('pet' + id).src = `${folder}/${user.status}.png?v=${Date.now()}`;
             document.getElementById('badge' + id).innerText = "Status: " + user.status;
             document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
 
-            // Backlog and Claim Alerts
+            // 4. Backlog and Claim Alerts
             let backHTML = "";
             let claimAlert = "";
             user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
@@ -188,8 +189,6 @@
                     backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${wNum})">Week ${wNum} (${d.getDate()}/${d.getMonth()+1}) (+1) ${h.completed}/${h.total}</button><br>`;
                 }
                 
-                // Show claim alert if week is done but no item is recorded
-                // Limited to current week and 1 week prior
                 if (isDone && !h.claimedItem && (wNum === Number(gameState.currentWeek) || wNum === Number(gameState.currentWeek) - 1)) {
                     claimAlert += `<div class="claim-alert" onclick="setShop(${wNum})">🎁 Claim Week ${wNum} Reward!</div>`;
                 }
@@ -197,6 +196,15 @@
             document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
             document.getElementById('claim' + id).innerHTML = claimAlert;
         });
+
+        // 5. Shop Header & Status Update
+        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
+        const currentCat = catList[(Number(viewingWeek) - 1) % 5] || "Wearables";
+        
+        // This updates the "Syncing" text to the actual Week title and changes the color to black
+        const header = document.getElementById('weekHeading');
+        header.innerText = `Week ${viewingWeek}: ${currentCat}`;
+        header.style.color = "#2d3436"; 
 
         renderShop();
     }
