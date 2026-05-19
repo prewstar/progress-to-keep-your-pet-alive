@@ -32,16 +32,20 @@
         .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
         
         /* Thought & Reply Bubble Elements Layout */
-        .bubble-container { display: flex; flex-direction: column; align-items: center; min-height: 135px; gap: 8px; margin-bottom: 5px; justify-content: flex-end; }
-        .thought-bubble { background: #fff; border: 2px solid #2d3436; border-radius: 15px; padding: 8px 12px; max-width: 85%; position: relative; font-style: italic; font-size: 0.85em; font-weight: bold; box-shadow: 3px 3px 0px rgba(0,0,0,0.1); color: #2d3436; }
-        .thought-bubble::after, .thought-bubble::before { content: ''; position: absolute; background: #fff; border: 2px solid #2d3436; border-radius: 50%; }
-        .thought-bubble::after { width: 7px; height: 7px; bottom: -10px; left: 48%; }
-        .thought-bubble::before { width: 4px; height: 4px; bottom: -15px; left: 46%; }
+        .bubble-container { display: flex; flex-direction: column; align-items: center; min-height: 135px; gap: 8px; margin-bottom: 5px; justify-content: flex-end; position: relative; }
+        .thought-bubble-wrapper { position: relative; max-width: 85%; display: inline-block; }
+        .thought-bubble { background: #fff; border: 2px solid #2d3436; border-radius: 15px; padding: 8px 12px; font-style: italic; font-size: 0.85em; font-weight: bold; box-shadow: 3px 3px 0px rgba(0,0,0,0.1); color: #2d3436; text-align: center; }
+        .thought-bubble-wrapper::after, .thought-bubble-wrapper::before { content: ''; position: absolute; background: #fff; border: 2px solid #2d3436; border-radius: 50%; }
+        .thought-bubble-wrapper::after { width: 7px; height: 7px; bottom: -10px; left: 48%; }
+        .thought-bubble-wrapper::before { width: 4px; height: 4px; bottom: -15px; left: 46%; }
         
-        .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: left; position: relative; }
-        .reaction-row { font-size: 1.1em; margin-top: 2px; height: 20px; }
+        /* Floating Emoji Badge Corner Styling */
+        .emoji-badge { position: absolute; top: -12px; right: -12px; font-size: 1.4em; background: transparent; border: none; padding: 0; z-index: 5; filter: drop-shadow(1px 2px 1px rgba(0,0,0,0.2)); cursor: pointer; transition: transform 0.1s; }
+        .emoji-badge:hover { transform: scale(1.2); }
+        
+        .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: center; position: relative; }
 
-        /* Controls Panel positioning area */
+        /* Controls Panel Area Configuration */
         .control-panel-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border: 1px solid #e2e8f0; }
         .panel-column { display: flex; flex-direction: column; gap: 8px; }
         .control-row { display: flex; gap: 6px; }
@@ -95,9 +99,11 @@
             <div class="stats-grid">
                 <div class="user-card">
                     <div class="bubble-container">
-                        <div id="bubbleA" class="thought-bubble">💭 ...</div>
+                        <div class="thought-bubble-wrapper">
+                            <div id="bubbleA" class="thought-bubble">💭 ...</div>
+                            <div id="badgeDisplayA" class="emoji-badge" title="Click to remove reaction" onclick="clearReaction('userA')"></div>
+                        </div>
                         <div id="replyBoxA" class="reply-bubble" style="display:none;"></div>
-                        <div id="reactDisplayA" class="reaction-row"></div>
                     </div>
                     <img id="petA" class="pet-sprite" src="michael/happy.png">
                     <div id="badgeA" class="status-badge status-happy">Status: Happy</div>
@@ -115,9 +121,11 @@
 
                 <div class="user-card">
                     <div class="bubble-container">
-                        <div id="bubbleB" class="thought-bubble">💭 ...</div>
+                        <div class="thought-bubble-wrapper">
+                            <div id="bubbleB" class="thought-bubble">💭 ...</div>
+                            <div id="badgeDisplayB" class="emoji-badge" title="Click to remove reaction" onclick="clearReaction('userB')"></div>
+                        </div>
                         <div id="replyBoxB" class="reply-bubble" style="display:none;"></div>
-                        <div id="reactDisplayB" class="reaction-row"></div>
                     </div>
                     <img id="petB" class="pet-sprite" src="jacinta/happy.png">
                     <div id="badgeB" class="status-badge status-happy">Status: Happy</div>
@@ -285,7 +293,7 @@
             const allItems = user.history.map(h => h.claimedItem).filter(i => i);
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
 
-            // 3. Side Tasks & Custom Deadline Logic
+            // 3. Side Tasks
             let hasOverdueTask = false;
             let taskHTML = "";
             let now = new Date();
@@ -308,9 +316,9 @@
             }
             document.getElementById('taskList' + id).innerHTML = taskHTML || "<p style='opacity:0.5; font-size:0.85em;'>No manual tasks! ☀️</p>";
 
-            // 4. Overlap Health Status Display Logic
+            // 4. Overlap Health Status Logic
             let finalStatusText = user.status;
-            let imageToUse = user.status; // Base logic state
+            let imageToUse = user.status;
 
             if (hasOverdueTask) {
                 if (user.status === "happy") {
@@ -318,7 +326,6 @@
                     imageToUse = "disappointed";
                 } else {
                     finalStatusText = user.status + "/disappointed";
-                    // If sick or comatosed, preserve base appearance image. If tired, downgrade to disappointed.
                     if (user.status === "tired") {
                         imageToUse = "disappointed";
                     }
@@ -330,23 +337,24 @@
             document.getElementById('badge' + id).innerText = "Status: " + finalStatusText;
             document.getElementById('badge' + id).className = `status-badge status-${hasOverdueTask && user.status === 'happy' ? 'disappointed' : user.status}`;
 
-            // 5. Dual-Layer Bubble Render Controls
+            // 5. Bubble Render
             const bubbleEl = document.getElementById('bubble' + id);
             bubbleEl.innerText = user.message ? user.message : "💭 ...";
 
             const replyBox = document.getElementById('replyBox' + id);
             if(user.reply) {
-                replyBox.innerText = "↪️ " + user.reply;
+                replyBox.innerText = user.reply;
                 replyBox.style.display = "block";
             } else {
                 replyBox.style.display = "none";
             }
 
-            // 5.5 Render Emoji Reactions
-            const reactDisplay = document.getElementById('reactDisplay' + id);
-            reactDisplay.innerText = user.emoji ? "Reaction: " + user.emoji : "";
+            // 5.5 Floating Emoji Placement Fix
+            const badgeEl = document.getElementById('badgeDisplay' + id);
+            badgeEl.innerText = user.emoji ? user.emoji : "";
+            badgeEl.style.display = user.emoji ? "block" : "none";
 
-            // 6. Historic Backlog Buttons
+        	// 6. Historic Backlog Buttons
             let backHTML = "";
             let claimAlert = "";
             user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
@@ -443,8 +451,8 @@
         if (!msgText) return;
 
         gameState[user].message = msgText;
-        gameState[user].reply = ""; // Clear client reply layout optimistically
-        gameState[user].emoji = ""; // Clear client reactions layout optimistically
+        gameState[user].reply = ""; 
+        gameState[user].emoji = ""; 
         updateUI();
         document.getElementById('input' + id).value = ""; 
 
@@ -455,7 +463,7 @@
     }
 
     async function saveReply(targetUser) {
-        const id = (targetUser === 'userA') ? 'B' : 'A'; // Input owner ID
+        const id = (targetUser === 'userA') ? 'B' : 'A'; 
         const replyText = document.getElementById('replyIn' + id).value.trim();
         if(!replyText) return;
 
@@ -475,6 +483,16 @@
         await fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newEmoji: emojiChar })
+        });
+    }
+
+    async function clearReaction(user) {
+        if (!gameState || !gameState[user].emoji) return;
+        gameState[user].emoji = "";
+        updateUI();
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: user, weekID: gameState.currentWeek, newEmoji: "" })
         });
     }
 
@@ -525,5 +543,4 @@
     syncData();
     setInterval(syncData, 30000);
 </script>
-</body>
-</html>
+</b
