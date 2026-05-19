@@ -7,15 +7,17 @@
     <style>
         :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
+        .container { max-width: 1200px; margin: auto; }
+        .main-layout { display: grid; grid-template-columns: 250px 1fr 250px; gap: 20px; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
         .pet-sprite { width: 120px; height: 120px; object-fit: contain; margin: 10px auto; display: block; }
-        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; margin-bottom: 10px; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; margin-bottom: 10px; text-transform: uppercase; }
         .status-happy { background: #55efc4; color: #00b894; }
         .status-tired { background: #ffeaa7; color: #fdcb6e; }
         .status-sick { background: #fab1a0; color: #e17055; }
         .status-coma { background: #a29bfe; color: #6c5ce7; }
+        .status-disappointed { background: #dfe6e9; color: #636e72; }
         .progress-container { background: #eee; height: 25px; border-radius: 12px; margin: 15px 0; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease; }
         .backlog-section { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; text-align: left; font-size: 0.85em; }
@@ -26,22 +28,46 @@
         .item-btn:disabled { background: #555; opacity: 0.6; }
         .tooltip-text { visibility: hidden; width: 160px; background-color: #fffa65; color: #333; text-align: center; border-radius: 10px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight: bold; border: 2px solid #333; font-size: 0.9em; line-height: 1.2; }
         .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
-        button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
         .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
         
-        /* Thought Bubble Layout */
-        .bubble-container { display: flex; flex-direction: column; align-items: center; min-height: 70px; margin-bottom: 5px; }
-        .thought-bubble { background: #fff; border: 2px solid #2d3436; border-radius: 15px; padding: 8px 12px; max-width: 80%; position: relative; font-style: italic; font-size: 0.9em; font-weight: bold; box-shadow: 3px 3px 0px rgba(0,0,0,0.1); color: #2d3436; }
+        /* Thought & Reply Bubble Elements Layout */
+        .bubble-container { display: flex; flex-direction: column; align-items: center; min-height: 135px; gap: 8px; margin-bottom: 5px; justify-content: flex-end; }
+        .thought-bubble { background: #fff; border: 2px solid #2d3436; border-radius: 15px; padding: 8px 12px; max-width: 85%; position: relative; font-style: italic; font-size: 0.85em; font-weight: bold; box-shadow: 3px 3px 0px rgba(0,0,0,0.1); color: #2d3436; }
         .thought-bubble::after, .thought-bubble::before { content: ''; position: absolute; background: #fff; border: 2px solid #2d3436; border-radius: 50%; }
-        .thought-bubble::after { width: 8px; height: 8px; bottom: -12px; left: 45%; }
-        .thought-bubble::before { width: 4px; height: 4px; bottom: -18px; left: 43%; }
+        .thought-bubble::after { width: 7px; height: 7px; bottom: -10px; left: 48%; }
+        .thought-bubble::before { width: 4px; height: 4px; bottom: -15px; left: 46%; }
         
-        /* Message Inputs */
-        .msg-input { width: 65%; padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85em; margin-bottom: 10px; box-sizing: border-box; }
-        .msg-btn { background: #2d3436; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; margin-left: 4px; font-weight: bold; vertical-align: top; height: 29px; }
-        .msg-btn:hover { background: #4b5563; }
+        .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: left; position: relative; }
+        .reaction-row { font-size: 1.1em; margin-top: 2px; height: 20px; }
 
-        /* Shop Navigation Style Additions */
+        /* Controls Panel positioning area */
+        .control-panel-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border: 1px solid #e2e8f0; }
+        .panel-column { display: flex; flex-direction: column; gap: 8px; }
+        .control-row { display: flex; gap: 6px; }
+        .msg-input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85em; }
+        .msg-btn { background: #2d3436; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
+        .msg-btn:hover { background: #4b5563; }
+        .reply-accent-btn { background: #6c5ce7; }
+        .reply-accent-btn:hover { background: #5649c0; }
+        
+        .emoji-selector { display: flex; gap: 4px; margin-top: 2px; align-items: center; }
+        .emoji-mini-btn { background: none; border: none; font-size: 1.1em; cursor: pointer; transition: transform 0.1s; padding: 2px; }
+        .emoji-mini-btn:hover { transform: scale(1.3); }
+
+        /* Custom Task Boards Sidebar */
+        .sidebar { background: #ffffff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; border: 1px solid #e2e8f0; }
+        .sidebar h4 { margin-top: 0; color: #2d3436; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .task-item { background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #94a3b8; font-size: 0.8em; position: relative; }
+        .task-item.overdue { border-left-color: #ef4444; background: #fef2f2; }
+        .task-item strong { display: block; color: #334155; font-size: 1.05em; margin-bottom: 2px; }
+        .task-item span { color: #64748b; font-size: 0.9em; }
+        .task-del-btn { position: absolute; top: 4px; right: 4px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1em; }
+        .task-del-btn:hover { color: #ef4444; }
+        .task-form { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e2e8f0; }
+        .task-form input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.8em; }
+        .task-form button { background: #6c5ce7; color: white; border: none; padding: 6px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8em; }
+
         .shop-nav-btn { background: #4b5563; border: none; color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; margin: 0 10px; vertical-align: middle; }
         .shop-nav-btn:hover { background: #6b7280; }
         .shop-nav-btn:disabled { background: #1f2937; opacity: 0.3; cursor: not-allowed; }
@@ -54,49 +80,121 @@
     <h1 style="text-align:center;">🐾 Note Guardians</h1>
     <h3 id="weekHeading" style="text-align:center; color: #6c5ce7;">Syncing with Sheet...</h3>
 
-    <div class="stats-grid">
-        <div class="user-card">
-            <div class="bubble-container"><div id="bubbleA" class="thought-bubble">💭 ...</div></div>
-            <img id="petA" class="pet-sprite" src="michael/happy.png">
-            <div id="badgeA" class="status-badge status-happy">Status: Happy</div>
-            <h3>Michael</h3>
-            <input type="text" id="inputA" class="msg-input" placeholder="Update thought..."><button class="msg-btn" onclick="saveMessage('userA')">Say</button>
-            <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
-            <p id="txtA">0 / 0 (0%)</p>
-            <button class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
-            <div id="claimA"></div>
-            <div class="backlog-section">
-                <strong>Overdue Notes:</strong>
-                <div id="historyA">None! ✨</div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <h4>📋 Michael's Tasks</h4>
+            <div id="taskListA"></div>
+            <div class="task-form">
+                <input type="text" id="taskInA" placeholder="Task description...">
+                <input type="date" id="dateInA">
+                <button onclick="addTask('userA')">Add Task</button>
             </div>
-            <p id="invA" style="font-size: 0.8em; color: #666;">🎒 Items: None</p>
         </div>
 
-        <div class="user-card">
-            <div class="bubble-container"><div id="bubbleB" class="thought-bubble">💭 ...</div></div>
-            <img id="petB" class="pet-sprite" src="jacinta/happy.png">
-            <div id="badgeB" class="status-badge status-happy">Status: Happy</div>
-            <h3>Jacinta</h3>
-            <input type="text" id="inputB" class="msg-input" placeholder="Update thought..."><button class="msg-btn" onclick="saveMessage('userB')">Say</button>
-            <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
-            <p id="txtB">0 / 0 (0%)</p>
-            <button class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
-            <div id="claimB"></div>
-            <div class="backlog-section">
-                <strong>Overdue Notes:</strong>
-                <div id="historyB">None! ✨</div>
-            </div>
-            <p id="invB" style="font-size: 0.8em; color: #666;">🎒 Items: None</p>
-        </div>
-    </div>
+        <div>
+            <div class="stats-grid">
+                <div class="user-card">
+                    <div class="bubble-container">
+                        <div id="bubbleA" class="thought-bubble">💭 ...</div>
+                        <div id="replyBoxA" class="reply-bubble" style="display:none;"></div>
+                        <div id="reactDisplayA" class="reaction-row"></div>
+                    </div>
+                    <img id="petA" class="pet-sprite" src="michael/happy.png">
+                    <div id="badgeA" class="status-badge status-happy">Status: Happy</div>
+                    <h3>Michael</h3>
+                    <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
+                    <p id="txtA">0 / 0 (0%)</p>
+                    <button class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
+                    <div id="claimA"></div>
+                    <div class="backlog-section">
+                        <strong>Overdue Notes:</strong>
+                        <div id="historyA">None! ✨</div>
+                    </div>
+                    <p id="invA" style="font-size: 0.8em; color: #666; margin: 5px 0 0 0;">🎒 Items: None</p>
+                </div>
 
-    <div class="shop-box">
-        <div class="shop-header-container">
-            <button id="prevShopBtn" class="shop-nav-btn" onclick="navigateShop(-1)">◀</button>
-            <h3 id="shopTitle" style="margin: 0; min-width: 320px;">🎁 Weekly Reward Draft</h3>
-            <button id="nextShopBtn" class="shop-nav-btn" onclick="navigateShop(1)">▶</button>
+                <div class="user-card">
+                    <div class="bubble-container">
+                        <div id="bubbleB" class="thought-bubble">💭 ...</div>
+                        <div id="replyBoxB" class="reply-bubble" style="display:none;"></div>
+                        <div id="reactDisplayB" class="reaction-row"></div>
+                    </div>
+                    <img id="petB" class="pet-sprite" src="jacinta/happy.png">
+                    <div id="badgeB" class="status-badge status-happy">Status: Happy</div>
+                    <h3>Jacinta</h3>
+                    <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
+                    <p id="txtB">0 / 0 (0%)</p>
+                    <button class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
+                    <div id="claimB"></div>
+                    <div class="backlog-section">
+                        <strong>Overdue Notes:</strong>
+                        <div id="historyB">None! ✨</div>
+                    </div>
+                    <p id="invB" style="font-size: 0.8em; color: #666; margin: 5px 0 0 0;">🎒 Items: None</p>
+                </div>
+            </div>
+
+            <div class="shop-box">
+                <div class="shop-header-container">
+                    <button id="prevShopBtn" class="shop-nav-btn" onclick="navigateShop(-1)">◀</button>
+                    <h3 id="shopTitle" style="margin: 0; min-width: 320px;">🎁 Weekly Reward Draft</h3>
+                    <button id="nextShopBtn" class="shop-nav-btn" onclick="navigateShop(1)">▶</button>
+                </div>
+                <div id="shopItems"></div>
+            </div>
+
+            <div class="control-panel-box">
+                <div class="panel-column">
+                    <strong>✍️ Michael's Console</strong>
+                    <div class="control-row">
+                        <input type="text" id="inputA" class="msg-input" placeholder="New thought...">
+                        <button class="msg-btn" onclick="saveMessage('userA')">Say</button>
+                    </div>
+                    <div class="control-row">
+                        <input type="text" id="replyInA" class="msg-input" placeholder="Reply to Jacinta...">
+                        <button class="msg-btn reply-accent-btn" onclick="saveReply('userB')">Reply</button>
+                    </div>
+                    <div class="emoji-selector">
+                        <span>React to Jacinta:</span>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','❤️')">❤️</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😊')">😊</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😮')">😮</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😢')">😢</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😫')">😫</button>
+                    </div>
+                </div>
+
+                <div class="panel-column">
+                    <strong>✍️ Jacinta's Console</strong>
+                    <div class="control-row">
+                        <input type="text" id="inputB" class="msg-input" placeholder="New thought...">
+                        <button class="msg-btn" onclick="saveMessage('userB')">Say</button>
+                    </div>
+                    <div class="control-row">
+                        <input type="text" id="replyInB" class="msg-input" placeholder="Reply to Michael...">
+                        <button class="msg-btn reply-accent-btn" onclick="saveReply('userA')">Reply</button>
+                    </div>
+                    <div class="emoji-selector">
+                        <span>React to Michael:</span>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','❤️')">❤️</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😊')">😊</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😮')">😮</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😢')">😢</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😫')">😫</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="shopItems"></div>
+
+        <div class="sidebar">
+            <h4>📋 Jacinta's Tasks</h4>
+            <div id="taskListB"></div>
+            <div class="task-form">
+                <input type="text" id="taskInB" placeholder="Task description...">
+                <input type="date" id="dateInB">
+                <button onclick="addTask('userB')">Add Task</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -175,7 +273,7 @@
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
-            // 1. Progress Metrics
+            // 1. Progress Bars
             const current = user.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if (current) {
                 const perc = (Number(current.completed) / Number(current.total)) * 100 || 0;
@@ -183,25 +281,72 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            // 2. Inventory Render
+            // 2. Inventory Display
             const allItems = user.history.map(h => h.claimedItem).filter(i => i);
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
-            
-            // 3. Asset Loading
-            const folder = (id === 'A') ? 'michael' : 'jacinta';
-            document.getElementById('pet' + id).src = `${folder}/${user.status}.png?v=${Date.now()}`;
-            document.getElementById('badge' + id).innerText = "Status: " + user.status;
-            document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
 
-            // 3.5 Message bubble handling
-            const bubbleEl = document.getElementById('bubble' + id);
-            if (user.message) {
-                bubbleEl.innerText = user.message;
-            } else {
-                bubbleEl.innerText = "💭 ...";
+            // 3. Side Tasks & Custom Deadline Logic
+            let hasOverdueTask = false;
+            let taskHTML = "";
+            let now = new Date();
+            now.setHours(0,0,0,0);
+
+            if(user.tasks && user.tasks.length > 0) {
+                user.tasks.forEach((t, index) => {
+                    let d = new Date(t.due);
+                    d.setHours(0,0,0,0);
+                    let isOverdue = d < now;
+                    if(isOverdue) hasOverdueTask = true;
+
+                    taskHTML += `
+                        <div class="task-item ${isOverdue ? 'overdue' : ''}">
+                            <button class="task-del-btn" onclick="deleteTask('${u}', ${index})">×</button>
+                            <strong>${t.desc}</strong>
+                            <span>📅 Due: ${d.getDate()}/${d.getMonth()+1}</span>
+                        </div>`;
+                });
+            }
+            document.getElementById('taskList' + id).innerHTML = taskHTML || "<p style='opacity:0.5; font-size:0.85em;'>No manual tasks! ☀️</p>";
+
+            // 4. Overlap Health Status Display Logic
+            let finalStatusText = user.status;
+            let imageToUse = user.status; // Base logic state
+
+            if (hasOverdueTask) {
+                if (user.status === "happy") {
+                    finalStatusText = "disappointed";
+                    imageToUse = "disappointed";
+                } else {
+                    finalStatusText = user.status + "/disappointed";
+                    // If sick or comatosed, preserve base appearance image. If tired, downgrade to disappointed.
+                    if (user.status === "tired") {
+                        imageToUse = "disappointed";
+                    }
+                }
             }
 
-            // 4. Overdue Interface Management
+            const folder = (id === 'A') ? 'michael' : 'jacinta';
+            document.getElementById('pet' + id).src = `${folder}/${imageToUse}.png?v=${Date.now()}`;
+            document.getElementById('badge' + id).innerText = "Status: " + finalStatusText;
+            document.getElementById('badge' + id).className = `status-badge status-${hasOverdueTask && user.status === 'happy' ? 'disappointed' : user.status}`;
+
+            // 5. Dual-Layer Bubble Render Controls
+            const bubbleEl = document.getElementById('bubble' + id);
+            bubbleEl.innerText = user.message ? user.message : "💭 ...";
+
+            const replyBox = document.getElementById('replyBox' + id);
+            if(user.reply) {
+                replyBox.innerText = "↪️ " + user.reply;
+                replyBox.style.display = "block";
+            } else {
+                replyBox.style.display = "none";
+            }
+
+            // 5.5 Render Emoji Reactions
+            const reactDisplay = document.getElementById('reactDisplay' + id);
+            reactDisplay.innerText = user.emoji ? "Reaction: " + user.emoji : "";
+
+            // 6. Historic Backlog Buttons
             let backHTML = "";
             let claimAlert = "";
             user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
@@ -221,7 +366,7 @@
             document.getElementById('claim' + id).innerHTML = claimAlert;
         });
 
-        // 5. Layout Alignment
+        // 7. Core Header Synchronization
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
         const currentCat = catList[(Number(gameState.currentWeek) - 1) % 5] || "Wearables";
         
@@ -229,7 +374,6 @@
         header.innerText = `Current Week ${gameState.currentWeek}: ${currentCat}`;
         header.style.color = "#2d3436"; 
 
-        // Update Nav Disabled Attributes dynamically
         document.getElementById('prevShopBtn').disabled = (Number(viewingWeek) <= 1);
         document.getElementById('nextShopBtn').disabled = (Number(viewingWeek) >= Number(gameState.currentWeek));
 
@@ -252,12 +396,10 @@
 
     function renderShop() {
         if(!gameState || !gameState.weeklyDrafts) return;
-        
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
         const viewCat = catList[(Number(viewingWeek) - 1) % 5];
         document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${viewCat})`;
 
-        // Pull explicitly saved structural items array sent from spreadsheet storage
         const weeklyItems = gameState.weeklyDrafts[viewingWeek] || [];
         let html = "";
         
@@ -301,12 +443,66 @@
         if (!msgText) return;
 
         gameState[user].message = msgText;
+        gameState[user].reply = ""; // Clear client reply layout optimistically
+        gameState[user].emoji = ""; // Clear client reactions layout optimistically
         updateUI();
         document.getElementById('input' + id).value = ""; 
 
         await fetch(API_URL, { 
             method: 'POST', 
             body: JSON.stringify({ user, weekID: gameState.currentWeek, newMessage: msgText }) 
+        });
+    }
+
+    async function saveReply(targetUser) {
+        const id = (targetUser === 'userA') ? 'B' : 'A'; // Input owner ID
+        const replyText = document.getElementById('replyIn' + id).value.trim();
+        if(!replyText) return;
+
+        gameState[targetUser].reply = replyText;
+        updateUI();
+        document.getElementById('replyIn' + id).value = "";
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newReply: replyText })
+        });
+    }
+
+    async function sendReaction(targetUser, emojiChar) {
+        gameState[targetUser].emoji = emojiChar;
+        updateUI();
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newEmoji: emojiChar })
+        });
+    }
+
+    async function addTask(user) {
+        const id = (user === 'userA') ? 'A' : 'B';
+        const desc = document.getElementById('taskIn' + id).value.trim();
+        const due = document.getElementById('dateIn' + id).value;
+        if(!desc || !due) return alert("Fill in task details and due date!");
+
+        if(!gameState[user].tasks) gameState[user].tasks = [];
+        gameState[user].tasks.push({ desc, due });
+        updateUI();
+
+        document.getElementById('taskIn' + id).value = "";
+        document.getElementById('dateIn' + id).value = "";
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user, weekID: gameState.currentWeek, newTasks: JSON.stringify(gameState[user].tasks) })
+        });
+    }
+
+    async function deleteTask(user, index) {
+        gameState[user].tasks.splice(index, 1);
+        updateUI();
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user, weekID: gameState.currentWeek, newTasks: JSON.stringify(gameState[user].tasks) })
         });
     }
 
