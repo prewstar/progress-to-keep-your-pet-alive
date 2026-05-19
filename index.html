@@ -40,6 +40,12 @@
         .msg-input { width: 65%; padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85em; margin-bottom: 10px; box-sizing: border-box; }
         .msg-btn { background: #2d3436; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; margin-left: 4px; font-weight: bold; vertical-align: top; height: 29px; }
         .msg-btn:hover { background: #4b5563; }
+
+        /* Shop Navigation Style Additions */
+        .shop-nav-btn { background: #4b5563; border: none; color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; margin: 0 10px; vertical-align: middle; }
+        .shop-nav-btn:hover { background: #6b7280; }
+        .shop-nav-btn:disabled { background: #1f2937; opacity: 0.3; cursor: not-allowed; }
+        .shop-header-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -85,7 +91,11 @@
     </div>
 
     <div class="shop-box">
-        <h3 id="shopTitle">🎁 Weekly Reward Draft</h3>
+        <div class="shop-header-container">
+            <button id="prevShopBtn" class="shop-nav-btn" onclick="navigateShop(-1)">◀</button>
+            <h3 id="shopTitle" style="margin: 0; min-width: 320px;">🎁 Weekly Reward Draft</h3>
+            <button id="nextShopBtn" class="shop-nav-btn" onclick="navigateShop(1)">▶</button>
+        </div>
         <div id="shopItems"></div>
     </div>
 </div>
@@ -146,14 +156,6 @@
         "Golden Ticket": "🎟️ A pass to a future Secret Garden."
     };
 
-    const DATABASE = {
-        "Wearables": ["Tiny Sprout Hat", "Over-sized Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Wings", "Pom-Pom Beanie"],
-        "Toys": ["Wind-up Mouse", "Glowing Jellyfish Lamp", "Miniature Train", "Squeaky Dino", "Infinite Yarn", "Heart Bubbles", "Handheld Console", "Wooden Rocking Horse", "Bouncy Star Ball", "Plushie of themselves"],
-        "Snacks": ["Star-shaped Watermelon", "Firefly Honey", "Cotton Candy Cloud", "Rainbow Macaron", "Strawberry Milk Box", "Lucky Acorn", "Heart-shaped Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Giant Sunflower Seed"],
-        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Framed Polaroid", "No-prick Cactus", "Cloud Rug"],
-        "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Compass that points to snacks", "Enchanted Umbrella", "Golden Ticket"]
-    };
-
     let gameState = null;
     let viewingWeek = null;
 
@@ -173,7 +175,7 @@
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
-            // 1. Current Progress (Main Bar)
+            // 1. Progress Metrics
             const current = user.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if (current) {
                 const perc = (Number(current.completed) / Number(current.total)) * 100 || 0;
@@ -181,17 +183,17 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            // 2. Inventory (Sum of all claimed items)
+            // 2. Inventory Render
             const allItems = user.history.map(h => h.claimedItem).filter(i => i);
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
             
-            // 3. Sprite & Badge (With Cache Buster Fix)
+            // 3. Asset Loading
             const folder = (id === 'A') ? 'michael' : 'jacinta';
             document.getElementById('pet' + id).src = `${folder}/${user.status}.png?v=${Date.now()}`;
             document.getElementById('badge' + id).innerText = "Status: " + user.status;
             document.getElementById('badge' + id).className = `status-badge status-${user.status}`;
 
-            // 3.5 Thought Bubble Update
+            // 3.5 Message bubble handling
             const bubbleEl = document.getElementById('bubble' + id);
             if (user.message) {
                 bubbleEl.innerText = user.message;
@@ -199,7 +201,7 @@
                 bubbleEl.innerText = "💭 ...";
             }
 
-            // 4. Backlog and Claim Alerts
+            // 4. Overdue Interface Management
             let backHTML = "";
             let claimAlert = "";
             user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
@@ -219,13 +221,17 @@
             document.getElementById('claim' + id).innerHTML = claimAlert;
         });
 
-        // 5. Shop Header & Status Update
+        // 5. Layout Alignment
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
-        const currentCat = catList[(Number(viewingWeek) - 1) % 5] || "Wearables";
+        const currentCat = catList[(Number(gameState.currentWeek) - 1) % 5] || "Wearables";
         
         const header = document.getElementById('weekHeading');
-        header.innerText = `Week ${viewingWeek}: ${currentCat}`;
+        header.innerText = `Current Week ${gameState.currentWeek}: ${currentCat}`;
         header.style.color = "#2d3436"; 
+
+        // Update Nav Disabled Attributes dynamically
+        document.getElementById('prevShopBtn').disabled = (Number(viewingWeek) <= 1);
+        document.getElementById('nextShopBtn').disabled = (Number(viewingWeek) >= Number(gameState.currentWeek));
 
         renderShop();
     }
@@ -235,22 +241,31 @@
         updateUI();
     }
 
+    function navigateShop(dir) {
+        if(!gameState) return;
+        const targetWeek = Number(viewingWeek) + dir;
+        if(targetWeek >= 1 && targetWeek <= Number(gameState.currentWeek)) {
+            viewingWeek = targetWeek;
+            updateUI();
+        }
+    }
+
     function renderShop() {
+        if(!gameState || !gameState.weeklyDrafts) return;
+        
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
-        const currentCat = catList[(Number(viewingWeek) - 1) % 5];
-        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${currentCat})`;
+        const viewCat = catList[(Number(viewingWeek) - 1) % 5];
+        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${viewCat})`;
 
-        let allItems = [...DATABASE[currentCat]];
-        let seed = Number(viewingWeek);
-        let shuffled = allItems.sort(() => {
-            const hash = (seed * 9301 + 49297) % 233280;
-            seed = hash;
-            return (hash / 233280) - 0.5;
-        });
-
-        const weeklyItems = shuffled.slice(0, 3);
+        // Pull explicitly saved structural items array sent from spreadsheet storage
+        const weeklyItems = gameState.weeklyDrafts[viewingWeek] || [];
         let html = "";
         
+        if (weeklyItems.length === 0) {
+            document.getElementById('shopItems').innerHTML = "<p style='opacity:0.5;'>Loading week draft items list...</p>";
+            return;
+        }
+
         const weekClaims = [
             gameState.userA.history.find(h => Number(h.week) === Number(viewingWeek))?.claimedItem,
             gameState.userB.history.find(h => Number(h.week) === Number(viewingWeek))?.claimedItem
