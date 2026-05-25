@@ -12,7 +12,6 @@
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
         
-        /* Cursor pointer alert to indicate click-to-fly is unlocked */
         .pet-sprite { width: 120px; height: 120px; object-fit: contain; margin: 10px auto; display: block; cursor: pointer; transition: transform 0.2s; }
         .pet-sprite:hover { transform: scale(1.05); }
         
@@ -43,7 +42,6 @@
         .thought-bubble-wrapper::after { width: 7px; height: 7px; bottom: -10px; left: 48%; }
         .thought-bubble-wrapper::before { width: 4px; height: 4px; bottom: -15px; left: 46%; }
         
-        /* Floating Emoji Badge Corner Styling */
         .emoji-badge { position: absolute; top: -12px; right: -12px; font-size: 1.4em; background: transparent; border: none; padding: 0; z-index: 5; filter: drop-shadow(1px 2px 1px rgba(0,0,0,0.2)); cursor: pointer; transition: transform 0.1s; }
         .emoji-badge:hover { transform: scale(1.2); }
         
@@ -63,7 +61,7 @@
         .emoji-mini-btn { background: none; border: none; font-size: 1.1em; cursor: pointer; transition: transform 0.1s; padding: 2px; }
         .emoji-mini-btn:hover { transform: scale(1.3); }
 
-        /* Custom Task Boards Sidebar */
+        /* Side Task Boards Sidebar */
         .sidebar { background: #ffffff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; border: 1px solid #e2e8f0; }
         .sidebar h4 { margin-top: 0; color: #2d3436; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .task-item { background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #94a3b8; font-size: 0.8em; position: relative; }
@@ -81,31 +79,16 @@
         .shop-nav-btn:disabled { background: #1f2937; opacity: 0.3; cursor: not-allowed; }
         .shop-header-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
 
-        /* Universal Celebration Overlay Structure */
-        #animationCanvasOverlay {
-            position: fixed;
-            top: 25%;
-            left: -200px;
-            width: 180px;
-            height: 180px;
-            z-index: 9999;
-            pointer-events: none;
-            display: none;
-        }
+        /* Dragonfly Celebration Animation Overlay */
+        #animationCanvasOverlay { position: fixed; top: 25%; left: -200px; width: 180px; height: 180px; z-index: 9999; pointer-events: none; display: none; }
         #animationCanvasOverlay img { width: 100%; height: 100%; object-fit: contain; }
-        @keyframes crossScreenFly {
-            0% { left: -200px; }
-            100% { left: calc(100vw + 200px); }
-        }
-        
-        /* Dedicated Fullscreen and Target Burst Confetti Canvas Layer */
+        @keyframes crossScreenFly { 0% { left: -200px; } 100% { left: calc(100vw + 200px); } }
         #confettiCanvas { position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:9998; pointer-events:none; }
     </style>
 </head>
 <body>
 
 <canvas id="confettiCanvas"></canvas>
-
 <div id="animationCanvasOverlay"><img id="animatedDragonflyFrame" src="michael-fly/deerfly2.png" alt="Celebrating!"></div>
 
 <div class="container">
@@ -309,7 +292,7 @@
             gameState = await response.json();
             if(!viewingWeek) viewingWeek = gameState.currentWeek;
             
-            // Background Real-time verification scanning triggers for celebration phases
+            // Background scanning tracking filters
             const histA = gameState.userA.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if(histA) {
                 if(localCompletedCacheA !== null && histA.completed >= histA.total && localCompletedCacheA < histA.total) {
@@ -337,6 +320,7 @@
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
+            // 1. Progress Bars
             const current = user.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if (current) {
                 const perc = (Number(current.completed) / Number(current.total)) * 100 || 0;
@@ -344,31 +328,37 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
+            // 2. Inventory Display
             const allItems = user.history.map(h => h.claimedItem).filter(i => i);
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
 
+            // 3. NEW UPGRADE: Pull ALL custom side tasks from ALL weeks across ledger history 
             let hasOverdueTask = false;
             let taskHTML = "";
             let now = new Date();
             now.setHours(0,0,0,0);
 
-            if(user.tasks && user.tasks.length > 0) {
-                user.tasks.forEach((t, index) => {
-                    let d = new Date(t.due);
-                    d.setHours(0,0,0,0);
-                    let isOverdue = d < now;
-                    if(isOverdue) hasOverdueTask = true;
+            user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
+                if(h.tasks && h.tasks.length > 0) {
+                    h.tasks.forEach((t, localIndex) => {
+                        let d = new Date(t.due);
+                        d.setHours(0,0,0,0);
+                        let isOverdue = d < now;
+                        if(isOverdue) hasOverdueTask = true;
 
-                    taskHTML += `
-                        <div class="task-item ${isOverdue ? 'overdue' : ''}">
-                            <button class="task-del-btn" onclick="deleteTask('${u}', ${index})">×</button>
-                            <strong>${t.desc}</strong>
-                            <span>📅 Due: ${d.getDate()}/${d.getMonth()+1}</span>
-                        </div>`;
-                });
-            }
+                        // Embed global week data directly onto elements so delete mapping routes securely
+                        taskHTML += `
+                            <div class="task-item ${isOverdue ? 'overdue' : ''}">
+                                <button class="task-del-btn" onclick="deleteTask('${u}', ${h.week}, ${localIndex})">×</button>
+                                <strong>${t.desc}</strong>
+                                <span>📅 Due: ${d.getDate()}/${d.getMonth()+1} (Wk ${h.week})</span>
+                            </div>`;
+                    });
+                }
+            });
             document.getElementById('taskList' + id).innerHTML = taskHTML || "<p style='opacity:0.5; font-size:0.85em;'>No manual tasks! ☀️</p>";
 
+            // 4. Overlap Health Status Logic Engine
             let finalStatusText = user.status;
             let imageToUse = user.status;
 
@@ -389,6 +379,7 @@
             document.getElementById('badge' + id).innerText = "Status: " + finalStatusText;
             document.getElementById('badge' + id).className = `status-badge status-${hasOverdueTask && user.status === 'happy' ? 'disappointed' : user.status}`;
 
+            // 5. Bubble Layout Displays
             const bubbleEl = document.getElementById('bubble' + id);
             bubbleEl.innerText = user.message ? user.message : "💭 ...";
 
@@ -404,6 +395,7 @@
             badgeEl.innerText = user.emoji ? user.emoji : "";
             badgeEl.style.display = user.emoji ? "block" : "none";
 
+            // 6. Historic Backlog Buttons
             let backHTML = "";
             let claimAlert = "";
             user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
@@ -423,6 +415,7 @@
             document.getElementById('claim' + id).innerHTML = claimAlert;
         });
 
+        // 7. Core Header Synchronization
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
         const currentCat = catList[(Number(gameState.currentWeek) - 1) % 5] || "Wearables";
         
@@ -436,7 +429,6 @@
         renderShop();
     }
 
-    /* Core Verification Filter: Unlocks click-to-fly manually ONLY if all notes across all weeks are completely checked 100% */
     function checkAllNotesClean(user) {
         if(!gameState || !gameState[user]) return false;
         return gameState[user].history.every(h => Number(h.completed) >= Number(h.total));
@@ -446,7 +438,7 @@
         if(checkAllNotesClean(user)) {
             animateFlightSequence(user);
         } else {
-            alert("Finish all your remaining notes across all weeks first to unlock flight mode! 📋✨");
+            alert("Finish all your remaining notes across all weeks first to unlock manual flight mode! 📋✨");
         }
     }
 
@@ -455,7 +447,6 @@
         spawnFullscreenConfetti();
     }
 
-    /* Shared Sprite Cycler: Dynamically adjusts loops based on custom target user structures */
     function animateFlightSequence(user) {
         const stage = document.getElementById('animationCanvasOverlay');
         const frameImg = document.getElementById('animatedDragonflyFrame');
@@ -464,7 +455,6 @@
         const folder = isMichael ? 'michael-fly' : 'jacinta-fly';
         const filePrefix = isMichael ? 'deerfly' : 'dragonfly';
         
-        // Michael starts at 2 because deerfly1.png is missing. Jacinta starts safely at 1.
         let currentFrame = isMichael ? 2 : 1; 
         const maxFrames = 19;
         
@@ -475,7 +465,7 @@
         const frameInterval = setInterval(() => {
             currentFrame++;
             if (currentFrame > maxFrames) {
-                currentFrame = isMichael ? 2 : 1; // Safely loop back inside parameters
+                currentFrame = isMichael ? 2 : 1; 
             }
             frameImg.src = `${folder}/${filePrefix}${currentFrame}.png`;
         }, 75);
@@ -484,7 +474,6 @@
             clearInterval(frameInterval);
             stage.style.display = 'none';
             stage.style.animation = '';
-            // Reset to baseline static target paths securely
             frameImg.src = isMichael ? "michael-fly/deerfly2.png" : "jacinta-fly/dragonfly1.png";
         }, 5000);
     }
@@ -544,7 +533,6 @@
         weekData.completed++;
         updateUI();
         
-        // 1. Trigger micro targeted burst directly at the coordinate coordinates of the source action button
         const btnID = (user === 'userA') ? 'btnActionA' : 'btnActionB';
         const btnEl = document.getElementById(btnID);
         if(btnEl) {
@@ -552,7 +540,6 @@
             spawnTargetBurstConfetti(rect.left + (rect.width / 2), rect.top + (rect.height / 2));
         }
         
-        // 2. Real-time checklist assessment logic check
         if(Number(weekID) === Number(gameState.currentWeek)) {
             if(weekData.completed === weekData.total) {
                 triggerFullCelebration(user);
@@ -619,8 +606,11 @@
         const due = document.getElementById('dateIn' + id).value;
         if(!desc || !due) return alert("Fill in task details and due date!");
 
-        if(!gameState[user].tasks) gameState[user].tasks = [];
-        gameState[user].tasks.push({ desc, due });
+        // Add task specifically to the row array container of the CURRENT week
+        const currentWeekData = gameState[user].history.find(h => Number(h.week) === Number(gameState.currentWeek));
+        if(!currentWeekData.tasks) currentWeekData.tasks = [];
+        
+        currentWeekData.tasks.push({ desc, due });
         updateUI();
 
         document.getElementById('taskIn' + id).value = "";
@@ -628,16 +618,21 @@
 
         await fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify({ user, weekID: gameState.currentWeek, newTasks: JSON.stringify(gameState[user].tasks) })
+            body: JSON.stringify({ user, weekID: gameState.currentWeek, newTasks: JSON.stringify(currentWeekData.tasks) })
         });
     }
 
-    async function deleteTask(user, index) {
-        gameState[user].tasks.splice(index, 1);
+    // NEW UPGRADE: Splices and updates tasks mapping across the historical week column context it belongs to
+    async function deleteTask(user, sourceWeek, targetIndex) {
+        const targetWeekData = gameState[user].history.find(h => Number(h.week) === Number(sourceWeek));
+        if(!targetWeekData || !targetWeekData.tasks) return;
+
+        targetWeekData.tasks.splice(targetIndex, 1);
         updateUI();
+
         await fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify({ user, weekID: gameState.currentWeek, newTasks: JSON.stringify(gameState[user].tasks) })
+            body: JSON.stringify({ user, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
         });
     }
 
@@ -658,7 +653,7 @@
     }
 
     /* ========================================================================
-       NATIVE HTML5 CANVAS CONFETTI PARTICLE SYSTEM ENGINE SCRIPT
+       HTML5 CANVAS ENGINE PARTICLE MATH
        ======================================================================== */
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
@@ -674,7 +669,6 @@
 
     function createParticle(x, y, isFullCelebration) {
         const angle = Math.random() * Math.PI * 2;
-        // Full screen drops drift lower, button bursts explode out fast
         const speed = isFullCelebration ? (Math.random() * 3 + 2) : (Math.random() * 5 + 4);
         return {
             x: x,
@@ -691,14 +685,12 @@
     }
 
     function spawnFullscreenConfetti() {
-        // Drop pieces down across the top border ceiling of the viewport window
         for (let i = 0; i < 150; i++) {
             particles.push(createParticle(Math.random() * canvas.width, Math.random() * -50, true));
         }
     }
 
     function spawnTargetBurstConfetti(x, y) {
-        // Point source pop explosion right at button coordinate node tracking points
         for (let i = 0; i < 30; i++) {
             particles.push(createParticle(x, y, false));
         }
@@ -706,20 +698,17 @@
 
     function updateParticles() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         for (let i = particles.length - 1; i >= 0; i--) {
             let p = particles[i];
             p.x += p.vx;
             p.y += p.vy;
             p.vy += p.gravity;
             p.rotation += p.rotationSpeed;
-            p.opacity -= 0.015; // Smooth decay fading exit vectors
-
+            p.opacity -= 0.015;
             if (p.opacity <= 0 || p.y > canvas.height || p.x < 0 || p.x > canvas.width) {
                 particles.splice(i, 1);
                 continue;
             }
-
             ctx.save();
             ctx.translate(p.x, p.y);
             ctx.rotate((p.rotation * Math.PI) / 180);
