@@ -31,10 +31,15 @@
         .item-btn:disabled { background: #555; opacity: 0.6; }
         .tooltip-text { visibility: hidden; width: 160px; background-color: #fffa65; color: #333; text-align: center; border-radius: 10px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight: bold; border: 2px solid #333; font-size: 0.9em; line-height: 1.2; }
         .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
-        button.action-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-bottom: 5px; position: relative; }
+        
+        /* Action Button Alignment row block adjustments */
+        .action-container-row { display: flex; gap: 6px; margin-bottom: 5px; }
+        button.action-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; position: relative; }
+        button.undo-btn { width: 45px; padding: 12px 0; border: none; border-radius: 8px; background: #ffeaa7; color: #d63031; font-weight: bold; cursor: pointer; font-size: 0.9em; }
+        button.undo-btn:hover { background: #fab1a0; }
+
         .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
         
-        /* Thought & Reply Bubble Elements Layout */
         .bubble-container { display: flex; flex-direction: column; align-items: center; min-height: 135px; gap: 8px; margin-bottom: 5px; justify-content: flex-end; position: relative; }
         .thought-bubble-wrapper { position: relative; max-width: 85%; display: inline-block; }
         .thought-bubble { background: #fff; border: 2px solid #2d3436; border-radius: 15px; padding: 8px 12px; font-style: italic; font-size: 0.85em; font-weight: bold; box-shadow: 3px 3px 0px rgba(0,0,0,0.1); color: #2d3436; text-align: center; }
@@ -47,7 +52,6 @@
         
         .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: center; position: relative; }
 
-        /* Controls Panel Area Configuration */
         .control-panel-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border: 1px solid #e2e8f0; }
         .panel-column { display: flex; flex-direction: column; gap: 8px; }
         .control-row { display: flex; gap: 6px; }
@@ -61,7 +65,6 @@
         .emoji-mini-btn { background: none; border: none; font-size: 1.1em; cursor: pointer; transition: transform 0.1s; padding: 2px; }
         .emoji-mini-btn:hover { transform: scale(1.3); }
 
-        /* Side Task Boards Sidebar */
         .sidebar { background: #ffffff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; border: 1px solid #e2e8f0; }
         .sidebar h4 { margin-top: 0; color: #2d3436; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .task-item { background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #94a3b8; font-size: 0.8em; position: relative; }
@@ -79,10 +82,9 @@
         .shop-nav-btn:disabled { background: #1f2937; opacity: 0.3; cursor: not-allowed; }
         .shop-header-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
 
-        /* Dragonfly Celebration Animation Overlay */
-        #animationCanvasOverlay { position: fixed; top: 25%; left: -200px; width: 180px; height: 180px; z-index: 9999; pointer-events: none; display: none; }
+        #animationCanvasOverlay { position: fixed; top: 25%; left: -250px; width: 180px; height: 180px; z-index: 9999; pointer-events: none; display: none; }
         #animationCanvasOverlay img { width: 100%; height: 100%; object-fit: contain; }
-        @keyframes crossScreenFly { 0% { left: -200px; } 100% { left: calc(100vw + 200px); } }
+        @keyframes crossScreenFly { 0% { left: -250px; } 100% { left: calc(100vw + 250px); } }
         #confettiCanvas { position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:9998; pointer-events:none; }
     </style>
 </head>
@@ -121,7 +123,12 @@
                     <h3>Michael</h3>
                     <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
                     <p id="txtA">0 / 0 (0%)</p>
-                    <button id="btnActionA" class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
+                    
+                    <div class="action-container-row">
+                        <button id="btnActionA" class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
+                        <button class="undo-btn" title="Undo accidental note click" onclick="removeNote('userA', gameState.currentWeek)">-1</button>
+                    </div>
+                    
                     <div id="claimA"></div>
                     <div class="backlog-section">
                         <strong>Overdue Notes:</strong>
@@ -143,7 +150,12 @@
                     <h3>Jacinta</h3>
                     <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
                     <p id="txtB">0 / 0 (0%)</p>
-                    <button id="btnActionB" class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
+                    
+                    <div class="action-container-row">
+                        <button id="btnActionB" class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
+                        <button class="undo-btn" title="Undo accidental note click" onclick="removeNote('userB', gameState.currentWeek)">-1</button>
+                    </div>
+                    
                     <div id="claimB"></div>
                     <div class="backlog-section">
                         <strong>Overdue Notes:</strong>
@@ -286,13 +298,26 @@
     let localCompletedCacheA = null; 
     let localCompletedCacheB = null; 
 
+    // NEW PRELOAD UPGRADE: Silently forces images into background browser storage cache
+    function cacheBustPreloader() {
+        // Prime Jacinta's 19 frames context
+        for(let i=1; i<=19; i++) {
+            const img = new Image();
+            img.src = `jacinta-fly/dragonfly${i}.png`;
+        }
+        // Prime Michael's 18 frames context (Starts at 2)
+        for(let i=2; i<=19; i++) {
+            const img = new Image();
+            img.src = `michael-fly/deerfly${i}.png`;
+        }
+    }
+
     async function syncData() {
         try {
             const response = await fetch(API_URL);
             gameState = await response.json();
             if(!viewingWeek) viewingWeek = gameState.currentWeek;
             
-            // Background scanning tracking filters
             const histA = gameState.userA.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if(histA) {
                 if(localCompletedCacheA !== null && histA.completed >= histA.total && localCompletedCacheA < histA.total) {
@@ -320,7 +345,6 @@
             const id = (u === 'userA') ? 'A' : 'B';
             const user = gameState[u];
             
-            // 1. Progress Bars
             const current = user.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if (current) {
                 const perc = (Number(current.completed) / Number(current.total)) * 100 || 0;
@@ -328,11 +352,9 @@
                 document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
             }
 
-            // 2. Inventory Display
             const allItems = user.history.map(h => h.claimedItem).filter(i => i);
             document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
 
-            // 3. NEW UPGRADE: Pull ALL custom side tasks from ALL weeks across ledger history 
             let hasOverdueTask = false;
             let taskHTML = "";
             let now = new Date();
@@ -346,7 +368,6 @@
                         let isOverdue = d < now;
                         if(isOverdue) hasOverdueTask = true;
 
-                        // Embed global week data directly onto elements so delete mapping routes securely
                         taskHTML += `
                             <div class="task-item ${isOverdue ? 'overdue' : ''}">
                                 <button class="task-del-btn" onclick="deleteTask('${u}', ${h.week}, ${localIndex})">×</button>
@@ -358,7 +379,6 @@
             });
             document.getElementById('taskList' + id).innerHTML = taskHTML || "<p style='opacity:0.5; font-size:0.85em;'>No manual tasks! ☀️</p>";
 
-            // 4. Overlap Health Status Logic Engine
             let finalStatusText = user.status;
             let imageToUse = user.status;
 
@@ -379,7 +399,6 @@
             document.getElementById('badge' + id).innerText = "Status: " + finalStatusText;
             document.getElementById('badge' + id).className = `status-badge status-${hasOverdueTask && user.status === 'happy' ? 'disappointed' : user.status}`;
 
-            // 5. Bubble Layout Displays
             const bubbleEl = document.getElementById('bubble' + id);
             bubbleEl.innerText = user.message ? user.message : "💭 ...";
 
@@ -395,7 +414,6 @@
             badgeEl.innerText = user.emoji ? user.emoji : "";
             badgeEl.style.display = user.emoji ? "block" : "none";
 
-            // 6. Historic Backlog Buttons
             let backHTML = "";
             let claimAlert = "";
             user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
@@ -415,7 +433,6 @@
             document.getElementById('claim' + id).innerHTML = claimAlert;
         });
 
-        // 7. Core Header Synchronization
         const catList = ["Wearables", "Toys", "Snacks", "Decor", "Rare"];
         const currentCat = catList[(Number(gameState.currentWeek) - 1) % 5] || "Wearables";
         
@@ -549,6 +566,19 @@
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
     }
 
+    // NEW UNDO HANDLING UPGRADE: Subtracts an accidental click cleanly
+    async function removeNote(user, weekID) {
+        if(!gameState) return;
+        const userHist = gameState[user].history;
+        const weekData = userHist.find(h => Number(h.week) === Number(weekID));
+        if(!weekData || Number(weekData.completed) <= 0) return; // Block negative limits
+        
+        weekData.completed--;
+        updateUI();
+        
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
+    }
+
     async function saveMessage(user) {
         const id = (user === 'userA') ? 'A' : 'B';
         const msgText = document.getElementById('input' + id).value.trim();
@@ -606,7 +636,6 @@
         const due = document.getElementById('dateIn' + id).value;
         if(!desc || !due) return alert("Fill in task details and due date!");
 
-        // Add task specifically to the row array container of the CURRENT week
         const currentWeekData = gameState[user].history.find(h => Number(h.week) === Number(gameState.currentWeek));
         if(!currentWeekData.tasks) currentWeekData.tasks = [];
         
@@ -622,7 +651,6 @@
         });
     }
 
-    // NEW UPGRADE: Splices and updates tasks mapping across the historical week column context it belongs to
     async function deleteTask(user, sourceWeek, targetIndex) {
         const targetWeekData = gameState[user].history.find(h => Number(h.week) === Number(sourceWeek));
         if(!targetWeekData || !targetWeekData.tasks) return;
@@ -653,7 +681,7 @@
     }
 
     /* ========================================================================
-       HTML5 CANVAS ENGINE PARTICLE MATH
+       HTML5 CANVAS CANVAS ENGINEERING ENGINE
        ======================================================================== */
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
@@ -721,6 +749,8 @@
     }
     requestAnimationFrame(updateParticles);
 
+    // Initialize systems
+    cacheBustPreloader();
     syncData();
     setInterval(syncData, 30000);
 </script>
