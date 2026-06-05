@@ -12,7 +12,7 @@
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
         
-        .pet-sprite { width: 240px; height: 240px; object-fit: contain; margin: 10px auto; display: block; cursor: pointer; transition: transform 0.2s; }
+        .pet-sprite { width: 180px; height: 180px; object-fit: contain; margin: 10px auto; display: block; cursor: pointer; transition: transform 0.2s; }
         .pet-sprite:hover { transform: scale(1.05); }
         
         .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; margin-bottom: 10px; text-transform: uppercase; }
@@ -32,7 +32,6 @@
         .tooltip-text { visibility: hidden; width: 160px; background-color: #fffa65; color: #333; text-align: center; border-radius: 10px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight: bold; border: 2px solid #333; font-size: 0.9em; line-height: 1.2; }
         .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
         
-        /* Action Button Alignment row block adjustments */
         .action-container-row { display: flex; gap: 6px; margin-bottom: 5px; }
         button.action-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; position: relative; }
         button.undo-btn { width: 45px; padding: 12px 0; border: none; border-radius: 8px; background: #ffeaa7; color: #d63031; font-weight: bold; cursor: pointer; font-size: 0.9em; }
@@ -86,6 +85,17 @@
         #animationCanvasOverlay img { width: 100%; height: 100%; object-fit: contain; }
         @keyframes crossScreenFly { 0% { left: -250px; } 100% { left: calc(100vw + 250px); } }
         #confettiCanvas { position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:9998; pointer-events:none; }
+
+        /* Beautiful New Wall of Fame Layout CSS */
+        .hof-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; margin-top: 20px; border: 1px solid #e2e8f0; text-align: center; }
+        .hof-title-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 10px; }
+        .hof-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; min-height: 140px; }
+        .hof-card { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; width: 130px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .hof-card img { width: 80px; height: 80px; object-fit: contain; margin: 0 auto 8px auto; display: block; }
+        .hof-name-tag { font-family: 'Georgia', serif; font-size: 0.9em; font-weight: bold; color: #4f46e5; margin-bottom: 4px; word-break: break-all; }
+        .hof-input-row { display: flex; flex-direction: column; gap: 4px; }
+        .hof-txt-in { font-size: 0.75em; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+        .hof-sub-btn { background: #2d3436; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -215,6 +225,15 @@
                     </div>
                 </div>
             </div>
+
+            <div class="hof-box">
+                <div class="hof-title-container">
+                    <button id="prevHofBtn" class="shop-nav-btn" onclick="navigateHof(-1)">◀</button>
+                    <h3 id="hofTitle" style="margin:0; min-width:280px; color:#2d3436;">🏆 Note Guardians Hall of Fame</h3>
+                    <button id="nextHofBtn" class="shop-nav-btn" onclick="navigateHof(1)">▶</button>
+                </div>
+                <div id="hofDisplayShelf" class="hof-grid"></div>
+            </div>
         </div>
 
         <div class="sidebar">
@@ -295,17 +314,15 @@
 
     let gameState = null;
     let viewingWeek = null;
+    let viewingHofPage = 1; // Current pagination state parameter bounds tracker
     let localCompletedCacheA = null; 
     let localCompletedCacheB = null; 
 
-    // NEW PRELOAD UPGRADE: Silently forces images into background browser storage cache
     function cacheBustPreloader() {
-        // Prime Jacinta's 19 frames context
         for(let i=1; i<=19; i++) {
             const img = new Image();
             img.src = `jacinta-fly/dragonfly${i}.png`;
         }
-        // Prime Michael's 18 frames context (Starts at 2)
         for(let i=2; i<=19; i++) {
             const img = new Image();
             img.src = `michael-fly/deerfly${i}.png`;
@@ -444,6 +461,76 @@
         document.getElementById('nextShopBtn').disabled = (Number(viewingWeek) >= Number(gameState.currentWeek));
 
         renderShop();
+        renderWallOfFame(); // Launch pagination shelf loop
+    }
+
+    /* New Dynamic Wall of Fame Grid Builder & Pagination Control Router */
+    function renderWallOfFame() {
+        if (!gameState || !gameState.wallOfFame) return;
+        
+        const totalItems = gameState.wallOfFame.length;
+        const itemsPerPage = 5;
+        const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+        
+        // Boundaries lock check
+        if (viewingHofPage > totalPages) viewingHofPage = totalPages;
+        if (viewingHofPage < 1) viewingHofPage = 1;
+
+        document.getElementById('prevHofBtn').disabled = (viewingHofPage <= 1);
+        document.getElementById('nextHofBtn').disabled = (viewingHofPage >= totalPages);
+        document.getElementById('hofTitle').innerText = `🏆 Hall of Fame (Page ${viewingHofPage}/${totalPages})`;
+
+        const startIndex = (viewingHofPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const visiblePets = gameState.wallOfFame.slice(startIndex, endIndex);
+
+        let html = "";
+        if(visiblePets.length === 0) {
+            html = "<p style='opacity:0.5; font-size:0.9em; padding:20px;'>The Wall of Fame is currently peaceful and empty. Retire a pet to immortalize them! 👑</p>";
+        } else {
+            visiblePets.forEach(pet => {
+                const folder = (pet.user === 'userA') ? 'michael' : 'jacinta';
+                let displaySection = "";
+                
+                if (pet.name) {
+                    displaySection = `<div class="hof-name-tag">${pet.name}</div>`;
+                } else {
+                    displaySection = `
+                        <div class="hof-input-row">
+                            <input type="text" id="hofIn${pet.rowID}" class="hof-txt-in" placeholder="Name pet...">
+                            <button class="hof-sub-btn" onclick="submitHofName(${pet.rowID})">Submit</button>
+                        </div>`;
+                }
+
+                html += `
+                    <div class="hof-card">
+                        ${displaySection}
+                        <img src="${folder}/${pet.image}?v=${Date.now()}" alt="Hero">
+                    </div>`;
+            });
+        }
+        document.getElementById('hofDisplayShelf').innerHTML = html;
+    }
+
+    function navigateHof(dir) {
+        viewingHofPage += dir;
+        renderWallOfFame();
+    }
+
+    async function submitHofName(rowID) {
+        const inputEl = document.getElementById('hofIn' + rowID);
+        const nameText = inputEl ? inputEl.value.trim() : "";
+        if (!nameText) return alert("Give your retired hero a proper name!");
+
+        // Optimistically lock string name value details layout locally
+        const localMatch = gameState.wallOfFame.find(p => p.rowID === rowID);
+        if(localMatch) localMatch.name = nameText;
+        renderWallOfFame();
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "updateHOFName", rowID: rowID, newName: nameText })
+        });
     }
 
     function checkAllNotesClean(user) {
@@ -566,16 +653,14 @@
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
     }
 
-    // NEW UNDO HANDLING UPGRADE: Subtracts an accidental click cleanly
     async function removeNote(user, weekID) {
         if(!gameState) return;
         const userHist = gameState[user].history;
         const weekData = userHist.find(h => Number(h.week) === Number(weekID));
-        if(!weekData || Number(weekData.completed) <= 0) return; // Block negative limits
+        if(!weekData || Number(weekData.completed) <= 0) return; 
         
         weekData.completed--;
         updateUI();
-        
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
     }
 
@@ -681,7 +766,7 @@
     }
 
     /* ========================================================================
-       HTML5 CANVAS CANVAS ENGINEERING ENGINE
+       HTML5 CANVAS CONFETTI PARTICLE SYSTEM ENGINE SCRIPT
        ======================================================================== */
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
@@ -749,7 +834,6 @@
     }
     requestAnimationFrame(updateParticles);
 
-    // Initialize systems
     cacheBustPreloader();
     syncData();
     setInterval(syncData, 30000);
