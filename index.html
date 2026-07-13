@@ -92,7 +92,7 @@
         .hof-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; min-height: 260px; }
         .hof-card { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; width: 260px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
         .hof-card img { width: 160px; height: 160px; object-fit: contain; margin: 0 auto 8px auto; display: block; }
-        .hof-name-tag { font-family: 'Georgia', serif; font-size: 0.9em; font-weight: bold; color: #4f46e5; margin-bottom: 4px; word-break: normal; overflow-wrap: break-word; }
+        .hof-name-tag { font-family: 'Trebuchet MS', sans-serif; font-size: 1.2em; font-weight: bold; color: #4f46e5; margin-bottom: 4px; word-break: normal; overflow-wrap: break-word; }
         .hof-input-row { display: flex; flex-direction: column; gap: 4px; }
         .hof-txt-in { font-size: 0.75em; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
         .hof-sub-btn { background: #2d3436; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
@@ -469,7 +469,7 @@
         if (!gameState || !gameState.wallOfFame) return;
         
         const totalItems = gameState.wallOfFame.length;
-        const itemsPerPage = 5;
+        const itemsPerPage = 2;
         const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
         
         // Boundaries lock check
