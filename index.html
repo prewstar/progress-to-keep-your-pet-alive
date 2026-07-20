@@ -251,7 +251,13 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
-    const DESCRIPTIONS = {
+    // Helper function to strip out invisible emoji presentation selectors (\uFE0F)
+    function normalizeItemName(str) {
+        if (!str) return "";
+        return str.replace(/[\uFE00-\uFE0F]/g, "").trim();
+    }
+
+    const RAW_DESCRIPTIONS = {
         "Tiny Sprout Hat": "🌱 A single green leaf that grows from their head.",
         "Over-sized Yellow Raincoat": "🧥 Complete with little matching boots.",
         "Star Sunglasses": "🕶️ For that celebrity-on-vacation look.",
@@ -314,6 +320,12 @@
         "🦇": "A baby bat, who loves to hang around in the day, and party at night."
     };
 
+    // Create a normalized lookup dictionary on startup
+    const DESCRIPTIONS = {};
+    Object.keys(RAW_DESCRIPTIONS).forEach(key => {
+        DESCRIPTIONS[normalizeItemName(key)] = RAW_DESCRIPTIONS[key];
+    });
+
     const DATABASE = {
         "Wearables": ["Tiny Sprout Hat", "Over-sized Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Overalls", "Pom-Pom Beanie"],
         "Toys": ["🐭Wind-up Mouse/Rubber Duck🦆", "Glowing Jellyfish Lamp", "🚂Miniature Train", "🦖Squeaky Dino", "🧶Infinite Yarn", "🫧Heart Bubbles", "🎮Handheld Console", "🎠Wooden Rocking Horse", "✨Bouncy Star Ball🏐", "🧸Plushie of themselves"],
@@ -325,7 +337,7 @@
 
     let gameState = null;
     let viewingWeek = null;
-    let viewingHofPage = 1; // Current pagination state parameter bounds tracker
+    let viewingHofPage = 1; 
     let localCompletedCacheA = null; 
     let localCompletedCacheB = null; 
 
@@ -472,7 +484,7 @@
         document.getElementById('nextShopBtn').disabled = (Number(viewingWeek) >= Number(gameState.currentWeek));
 
         renderShop();
-        renderWallOfFame(); // Launch pagination shelf loop
+        renderWallOfFame(); 
     }
 
     /* New Dynamic Wall of Fame Grid Builder & Pagination Control Router */
@@ -483,7 +495,6 @@
         const itemsPerPage = 2;
         const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
         
-        // Boundaries lock check
         if (viewingHofPage > totalPages) viewingHofPage = totalPages;
         if (viewingHofPage < 1) viewingHofPage = 1;
 
@@ -533,7 +544,6 @@
         const nameText = inputEl ? inputEl.value.trim() : "";
         if (!nameText) return alert("Give your retired hero a proper name!");
 
-        // Optimistically lock string name value details layout locally
         const localMatch = gameState.wallOfFame.find(p => p.rowID === rowID);
         if(localMatch) localMatch.name = nameText;
         renderWallOfFame();
@@ -568,7 +578,7 @@
         
         const isMichael = (user === 'userA');
         const folder = isMichael ? 'michael-fly' : 'jacinta-fly';
-        const filePrefix = isMichael ? 'deerfly' : 'dragonfly';
+        const filePrefix = isMichael ? 'deerfly';
         
         let currentFrame = isMichael ? 2 : 1; 
         const maxFrames = 19;
@@ -628,7 +638,11 @@
 
         weeklyItems.forEach(item => {
             const isSold = weekClaims.includes(item);
-            const tooltip = DESCRIPTIONS[item] || "A special item!";
+            
+            // 🌟 Updated Lookup: Cleans the variant selector before matching keys
+            const normalizedCurrentItem = normalizeItemName(item);
+            const tooltip = DESCRIPTIONS[normalizedCurrentItem] || "A special item!";
+            
             html += `
                 <div class="item-wrapper">
                     <button class="item-btn" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">
