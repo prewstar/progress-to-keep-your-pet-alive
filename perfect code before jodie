@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Guardian: The Competition</title>
+    <style>
+        :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: auto; position: relative; }
+        .main-layout { display: grid; grid-template-columns: 250px 1fr 250px; gap: 20px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .pet-sprite { width: 180px; height: 180px; object-fit: contain; margin: 10px auto; display: block; cursor: pointer; transition: transform 0.2s; }
+        .pet-sprite:hover { transform: scale(1.05); }
+        
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; margin-bottom: 10px; text-transform: uppercase; }
+        .status-happy { background: #55efc4; color: #00b894; }
+        .status-tired { background: #ffeaa7; color: #fdcb6e; }
+        .status-sick { background: #fab1a0; color: #e17055; }
+        .status-coma { background: #a29bfe; color: #6c5ce7; }
+        .status-disappointed { background: #dfe6e9; color: #636e72; }
+        .progress-container { background: #eee; height: 25px; border-radius: 12px; margin: 15px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.8s ease; }
+        .backlog-section { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc; text-align: left; font-size: 0.85em; }
+        .backlog-btn { background: #e0dbff; border: 1px solid var(--primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 2px; }
+        .shop-box { background: #2d3436; color: white; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: center; position: relative; }
+        .item-wrapper { position: relative; display: inline-block; }
+        .item-btn { background: #6c5ce7; border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin: 5px; font-weight: bold; }
+        .item-btn:disabled { background: #555; opacity: 0.6; }
+        .tooltip-text { visibility: hidden; width: 160px; background-color: #fffa65; color: #333; text-align: center; border-radius: 10px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight: bold; border: 2px solid #333; font-size: 0.9em; line-height: 1.2; }
+        .item-wrapper:hover .tooltip-text { visibility: visible; opacity: 1; }
+        
+        .action-container-row { display: flex; gap: 6px; margin-bottom: 5px; }
+        button.action-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; position: relative; }
+        button.undo-btn { width: 45px; padding: 12px 0; border: none; border-radius: 8px; background: #ffeaa7; color: #d63031; font-weight: bold; cursor: pointer; font-size: 0.9em; }
+        button.undo-btn:hover { background: #fab1a0; }
+
+        .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
+        
+        .bubble-container { display: flex; flex-direction: column; align-items: center; min-height: 135px; gap: 8px; margin-bottom: 5px; justify-content: flex-end; position: relative; }
+        .thought-bubble-wrapper { position: relative; max-width: 85%; display: inline-block; }
+        .thought-bubble { background: #fff; border: 2px solid #2d3436; border-radius: 15px; padding: 8px 12px; font-style: italic; font-size: 0.85em; font-weight: bold; box-shadow: 3px 3px 0px rgba(0,0,0,0.1); color: #2d3436; text-align: center; }
+        .thought-bubble-wrapper::after, .thought-bubble-wrapper::before { content: ''; position: absolute; background: #fff; border: 2px solid #2d3436; border-radius: 50%; }
+        .thought-bubble-wrapper::after { width: 7px; height: 7px; bottom: -10px; left: 48%; }
+        .thought-bubble-wrapper::before { width: 4px; height: 4px; bottom: -15px; left: 46%; }
+        
+        .emoji-badge { position: absolute; top: -12px; right: -12px; font-size: 1.4em; background: transparent; border: none; padding: 0; z-index: 5; filter: drop-shadow(1px 2px 1px rgba(0,0,0,0.2)); cursor: pointer; transition: transform 0.1s; }
+        .emoji-badge:hover { transform: scale(1.2); }
+        
+        .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: center; position: relative; }
+
+        .control-panel-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border: 1px solid #e2e8f0; }
+        .panel-column { display: flex; flex-direction: column; gap: 8px; }
+        .control-row { display: flex; gap: 6px; }
+        .msg-input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85em; }
+        .msg-btn { background: #2d3436; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
+        .msg-btn:hover { background: #4b5563; }
+        .reply-accent-btn { background: #6c5ce7; }
+        .reply-accent-btn:hover { background: #5649c0; }
+        
+        .emoji-selector { display: flex; gap: 4px; margin-top: 2px; align-items: center; }
+        .emoji-mini-btn { background: none; border: none; font-size: 1.1em; cursor: pointer; transition: transform 0.1s; padding: 2px; }
+        .emoji-mini-btn:hover { transform: scale(1.3); }
+
+        .sidebar { background: #ffffff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; border: 1px solid #e2e8f0; }
+        .sidebar h4 { margin-top: 0; color: #2d3436; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .task-item { background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #94a3b8; font-size: 0.8em; position: relative; }
+        .task-item.overdue { border-left-color: #ef4444; background: #fef2f2; }
+        .task-item strong { display: block; color: #334155; font-size: 1.05em; margin-bottom: 2px; }
+        .task-item span { color: #64748b; font-size: 0.9em; }
+        .task-del-btn { position: absolute; top: 4px; right: 4px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1em; }
+        .task-del-btn:hover { color: #ef4444; }
+        .task-form { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e2e8f0; }
+        .task-form input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.8em; }
+        .task-form button { background: #6c5ce7; color: white; border: none; padding: 6px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8em; }
+
+        .shop-nav-btn { background: #4b5563; border: none; color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; margin: 0 10px; vertical-align: middle; }
+        .shop-nav-btn:hover { background: #6b7280; }
+        .shop-nav-btn:disabled { background: #1f2937; opacity: 0.3; cursor: not-allowed; }
+        .shop-header-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
+
+        #animationCanvasOverlay { position: fixed; top: 25%; left: -250px; width: 180px; height: 180px; z-index: 9999; pointer-events: none; display: none; }
+        #animationCanvasOverlay img { width: 100%; height: 100%; object-fit: contain; }
+        @keyframes crossScreenFly { 0% { left: -250px; } 100% { left: calc(100vw + 250px); } }
+        #confettiCanvas { position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:9998; pointer-events:none; }
+
+        /* Beautiful New Wall of Fame Layout CSS */
+        .hof-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; margin-top: 20px; border: 1px solid #e2e8f0; text-align: center; }
+        .hof-title-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 10px; }
+        .hof-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; min-height: 260px; }
+        .hof-card { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; width: 260px; text-align: center; display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; }
+        .hof-card img { width: 160px; height: 160px; object-fit: contain; margin: 0 auto 8px auto; display: block; }
+        .hof-name-tag { font-family: 'Trebuchet MS', sans-serif; font-size: 1.2em; font-weight: bold; color: #4f46e5; margin-bottom: 4px; word-break: normal; overflow-wrap: break-word; }
+        .hof-input-row { display: flex; flex-direction: column; gap: 4px; }
+        .hof-txt-in { font-size: 0.75em; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+        .hof-sub-btn { background: #2d3436; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+<div id="animationCanvasOverlay"><img id="animatedDragonflyFrame" src="michael-fly/deerfly2.png" alt="Celebrating!"></div>
+
+<div class="container">
+    <h1 style="text-align:center;">🐾 Note Guardians</h1>
+    <h3 id="weekHeading" style="text-align:center; color: #6c5ce7;">Syncing with Sheet...</h3>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <h4>📋 Michael's Tasks</h4>
+            <div id="taskListA"></div>
+            <div class="task-form">
+                <input type="text" id="taskInA" placeholder="Task description...">
+                <input type="date" id="dateInA">
+                <button onclick="addTask('userA')">Add Task</button>
+            </div>
+        </div>
+
+        <div>
+            <div class="stats-grid">
+                <div class="user-card">
+                    <div class="bubble-container">
+                        <div class="thought-bubble-wrapper">
+                            <div id="bubbleA" class="thought-bubble">💭 ...</div>
+                            <div id="badgeDisplayA" class="emoji-badge" title="Click to remove reaction" onclick="clearReaction('userA')"></div>
+                        </div>
+                        <div id="replyBoxA" class="reply-bubble" style="display:none;"></div>
+                    </div>
+                    <img id="petA" class="pet-sprite" src="michael/happy.png" onclick="clickToFly('userA')">
+                    <div id="badgeA" class="status-badge status-happy">Status: Happy</div>
+                    <h3>Michael</h3>
+                    <div class="progress-container"><div id="barA" class="progress-fill"></div></div>
+                    <p id="txtA">0 / 0 (0%)</p>
+                    
+                    <div class="action-container-row">
+                        <button id="btnActionA" class="action-btn" onclick="addNote('userA', gameState.currentWeek)">+1 Current Note</button>
+                        <button class="undo-btn" title="Undo accidental note click" onclick="removeNote('userA', gameState.currentWeek)">-1</button>
+                    </div>
+                    
+                    <div id="claimA"></div>
+                    <div class="backlog-section">
+                        <strong>Overdue Notes:</strong>
+                        <div id="historyA">None! ✨</div>
+                    </div>
+                    <p id="invA" style="font-size: 0.8em; color: #666; margin: 5px 0 0 0;">🎒 Items: None</p>
+                </div>
+
+                <div class="user-card">
+                    <div class="bubble-container">
+                        <div class="thought-bubble-wrapper">
+                            <div id="bubbleB" class="thought-bubble">💭 ...</div>
+                            <div id="badgeDisplayB" class="emoji-badge" title="Click to remove reaction" onclick="clearReaction('userB')"></div>
+                        </div>
+                        <div id="replyBoxB" class="reply-bubble" style="display:none;"></div>
+                    </div>
+                    <img id="petB" class="pet-sprite" src="jacinta/happy.png" onclick="clickToFly('userB')">
+                    <div id="badgeB" class="status-badge status-happy">Status: Happy</div>
+                    <h3>Jacinta</h3>
+                    <div class="progress-container"><div id="barB" class="progress-fill"></div></div>
+                    <p id="txtB">0 / 0 (0%)</p>
+                    
+                    <div class="action-container-row">
+                        <button id="btnActionB" class="action-btn" onclick="addNote('userB', gameState.currentWeek)">+1 Current Note</button>
+                        <button class="undo-btn" title="Undo accidental note click" onclick="removeNote('userB', gameState.currentWeek)">-1</button>
+                    </div>
+                    
+                    <div id="claimB"></div>
+                    <div class="backlog-section">
+                        <strong>Overdue Notes:</strong>
+                        <div id="historyB">None! ✨</div>
+                    </div>
+                    <p id="invB" style="font-size: 0.8em; color: #666; margin: 5px 0 0 0;">🎒 Items: None</p>
+                </div>
+            </div>
+
+            <div class="shop-box">
+                <div class="shop-header-container">
+                    <button id="prevShopBtn" class="shop-nav-btn" onclick="navigateShop(-1)">◀</button>
+                    <h3 id="shopTitle" style="margin: 0; min-width: 320px;">🎁 Weekly Reward Draft</h3>
+                    <button id="nextShopBtn" class="shop-nav-btn" onclick="navigateShop(1)">▶</button>
+                </div>
+                <div id="shopItems"></div>
+            </div>
+
+            <div class="control-panel-box">
+                <div class="panel-column">
+                    <strong>✍️ Michael's Console</strong>
+                    <div class="control-row">
+                        <input type="text" id="inputA" class="msg-input" placeholder="New thought...">
+                        <button class="msg-btn" onclick="saveMessage('userA')">Say</button>
+                    </div>
+                    <div class="control-row">
+                        <input type="text" id="replyInA" class="msg-input" placeholder="Reply to Jacinta...">
+                        <button class="msg-btn reply-accent-btn" onclick="saveReply('userB')">Reply</button>
+                    </div>
+                    <div class="emoji-selector">
+                        <span>React to Jacinta:</span>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','❤️')">❤️</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😊')">😊</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😮')">😮</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😢')">😢</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userB','😫')">😫</button>
+                    </div>
+                </div>
+
+                <div class="panel-column">
+                    <strong>✍️ Jacinta's Console</strong>
+                    <div class="control-row">
+                        <input type="text" id="inputB" class="msg-input" placeholder="New thought...">
+                        <button class="msg-btn" onclick="saveMessage('userB')">Say</button>
+                    </div>
+                    <div class="control-row">
+                        <input type="text" id="replyInB" class="msg-input" placeholder="Reply to Michael...">
+                        <button class="msg-btn reply-accent-btn" onclick="saveReply('userA')">Reply</button>
+                    </div>
+                    <div class="emoji-selector">
+                        <span>React to Michael:</span>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','❤️')">❤️</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😊')">😊</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😮')">😮</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😢')">😢</button>
+                        <button class="emoji-mini-btn" onclick="sendReaction('userA','😫')">😫</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hof-box">
+                <div class="hof-title-container">
+                    <button id="prevHofBtn" class="shop-nav-btn" onclick="navigateHof(-1)">◀</button>
+                    <h3 id="hofTitle" style="margin:0; min-width:280px; color:#2d3436;">🏆 Note Guardians Hall of Fame</h3>
+                    <button id="nextHofBtn" class="shop-nav-btn" onclick="navigateHof(1)">▶</button>
+                </div>
+                <div id="hofDisplayShelf" class="hof-grid"></div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h4>📋 Jacinta's Tasks</h4>
+            <div id="taskListB"></div>
+            <div class="task-form">
+                <input type="text" id="taskInB" placeholder="Task description...">
+                <input type="date" id="dateInB">
+                <button onclick="addTask('userB')">Add Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
+    
+    // Helper function to strip out invisible emoji presentation selectors (\uFE0F)
+    function normalizeItemName(str) {
+        if (!str) return "";
+        return str.replace(/[\uFE00-\uFE0F]/g, "").trim();
+    }
+
+    const RAW_DESCRIPTIONS = {
+        "Tiny Sprout Hat": "🌱 A single green leaf that grows from their head.",
+        "Over-sized Yellow Raincoat": "🧥 Complete with little matching boots.",
+        "Star Sunglasses": "🕶️ For that celebrity-on-vacation look.",
+        "Crocheted Scarf": "🧣 Long enough to trail slightly behind.",
+        "Flower Crown": "🌸 Made of daisies that never wilt.",
+        "Polka-Dot Bowtie": "🎀 Automatically straightens itself.",
+        "Paper Bag Mask": "🎭 With a hand-drawn smiley face.",
+        "Cardboard Armor": "🛡️ For the brave (but fragile) hero.",
+        "Overalls": "👖 We'll make a farmer of you yet.",
+        "Pom-Pom Beanie": "👒 Extra floppy and soft.",
+        "🐭Wind-up Mouse/Rubber Duck🦆": "🐭🦆 Zips around in circles.",
+        "Glowing Jellyfish Lamp": "🏮 Hovers slightly off the ground.",
+        "🚂Miniature Train": "🚂 Just big enough for them to sit in.",
+        "🦖Squeaky Dino": "🦖 Makes a high-pitched mewp sound.",
+        "🧶Infinite Yarn": "🧶 Never unravels completely.",
+        "🫧Heart Bubbles": "🫧 Creates floating heart-shaped bubbles.",
+        "🎮Handheld Console": "🎮 A tiny device for your pet to play.",
+        "🎠Wooden Rocking Horse": "🎠 Perfectly sized for a ride.",
+        "✨Bouncy Star Ball🏐": "✨ Leaves a trail of glitter.",
+        "🧸Plushie of themselves": "🧸 For maximum meta-cuteness.",
+        "Star-shaped Watermelon": "🍉 Tastes like summer.",
+        "Firefly Honey": "🍯 Glows in the dark.",
+        "Cotton Candy Cloud": "☁️ Occasionally drifts upward.",
+        "Rainbow Macaron": "🍪 A different flavor in every bite.",
+        "Strawberry Milk Box": "🥤 Complete with a tiny straw.",
+        "Lucky Acorn": "🐿️ Polished to a high shine.",
+        "Heart-shaped Jam Cookie": "🍓 Leaves a trail of crumbs.",
+        "Moon-Cheese": "🧀 Mildly cratered and very savory.",
+        "Sparkling Soda": "🍹 Causes the pet to emit tiny sparkles.",
+        "Giant Sunflower Seed": "🌻 Hard to carry, but worth it.",
+        "Mushroom Stool": "🍄 A cozy place to sit.",
+        "Teacup Bed": "☕ Lined with silk pillows.",
+        "Terrarium Globe": "🌍 A tiny ecosystem in a glass ball.",
+        "Ghost Plant": "🌿 A translucent, friendly-looking fern.",
+        "Record Player": "🎶 Plays lo-fi beats for sleeping.",
+        "Fairy Lights": "🏮 Drapes over anything they own.",
+        "Beanbag Chair": "💺 Takes the exact shape of the pet.",
+        "Framed Polaroid": "📸 Of the pet and its owner!",
+        "No-prick Cactus": "🌵 It’s actually quite fuzzy.",
+        "Cloud Rug": "☁️ Feels like walking on air.",
+        "Stardust": "✨ Change the pet's color temporarily.",
+        "Antique Key": "🔑 No one knows what it opens yet.",
+        "Ever-Burning Candle": "🕯️ Smells like vanilla and old books.",
+        "Message in a Bottle": "🍾 Contains a random compliment.",
+        "Pocket Sun": "☀️ Keeps the pet warm on rainy days.",
+        "Crystal Geode": "💎 Sparkles when the pet is happy.",
+        "Phoenix Feather": "🪶 Warm to the touch.",
+        "Compass that points to snacks": "🧭 Always reliable.",
+        "Enchanted Umbrella": "☂️ Floats over them automatically.",
+        "Golden Ticket": "🎟️ A pass to a future Secret Garden.",
+        "🦡": "A baby armadillo friend curled in a ball.",
+        "🐯": "An adorable tiger cub.",
+        "🦔": "A cute hoglet (baby hedgehog) who wants to be your firend.",
+        "🦖": "A baby T-Rex. Cute but fiersome.",
+        "🦊": "A sweet little kit, who loves to brush the legs of their friends.",
+        "🐌": "A whimsical snail who leaves a glittery trail and tells wonderful stories.",
+        "🐧": "A baby penguin. Fluffy, floofy and ready for fun.",
+        "🦅": "A magestic eagle who will keep watch over your adorable pet.",
+        "🐢": "A wise old tortoise. The very picture of refinement.",
+        "🦇": "A baby bat, who loves to hang around in the day, and party at night."
+    };
+
+    // Create a normalized lookup dictionary on startup
+    const DESCRIPTIONS = {};
+    Object.keys(RAW_DESCRIPTIONS).forEach(key => {
+        DESCRIPTIONS[normalizeItemName(key)] = RAW_DESCRIPTIONS[key];
+    });
+
+    const DATABASE = {
+        "Wearables": ["Tiny Sprout Hat", "Over-sized Yellow Raincoat", "Star Sunglasses", "Crocheted Scarf", "Flower Crown", "Polka-Dot Bowtie", "Paper Bag Mask", "Cardboard Armor", "Overalls", "Pom-Pom Beanie"],
+        "Toys": ["🐭Wind-up Mouse/Rubber Duck🦆", "Glowing Jellyfish Lamp", "🚂Miniature Train", "🦖Squeaky Dino", "🧶Infinite Yarn", "🫧Heart Bubbles", "🎮Handheld Console", "🎠Wooden Rocking Horse", "✨Bouncy Star Ball🏐", "🧸Plushie of themselves"],
+        "Snacks": ["Star-shaped Watermelon", "Firefly Honey", "Cotton Candy Cloud", "Rainbow Macaron", "Strawberry Milk Box", "Lucky Acorn", "Heart-shaped Jam Cookie", "Moon-Cheese", "Sparkling Soda", "Giant Sunflower Seed"],
+        "Decor": ["Mushroom Stool", "Teacup Bed", "Terrarium Globe", "Ghost Plant", "Record Player", "Fairy Lights", "Beanbag Chair", "Framed Polaroid", "No-prick Cactus", "Cloud Rug"],
+        "Rare": ["Stardust", "Antique Key", "Ever-Burning Candle", "Message in a Bottle", "Pocket Sun", "Crystal Geode", "Phoenix Feather", "Compass that points to snacks", "Enchanted Umbrella", "Golden Ticket"],
+        "Friends": ["🦡", "🐯", "🦔", "🦖", "🦊", "🐌", "🐧", "🦅", "🐢", "🦇"]
+    };
+
+    let gameState = null;
+    let viewingWeek = null;
+    let viewingHofPage = 1; 
+    let localCompletedCacheA = null; 
+    let localCompletedCacheB = null; 
+
+    function cacheBustPreloader() {
+        for(let i=1; i<=19; i++) {
+            const img = new Image();
+            img.src = `jacinta-fly/dragonfly${i}.png`;
+        }
+        for(let i=2; i<=19; i++) {
+            const img = new Image();
+            img.src = `michael-fly/deerfly${i}.png`;
+        }
+    }
+
+    async function syncData() {
+        try {
+            const response = await fetch(API_URL);
+            gameState = await response.json();
+            if(!viewingWeek) viewingWeek = gameState.currentWeek;
+            
+            const histA = gameState.userA.history.find(h => Number(h.week) === Number(gameState.currentWeek));
+            if(histA) {
+                if(localCompletedCacheA !== null && histA.completed >= histA.total && localCompletedCacheA < histA.total) {
+                    triggerFullCelebration('userA');
+                }
+                localCompletedCacheA = histA.completed;
+            }
+
+            const histB = gameState.userB.history.find(h => Number(h.week) === Number(gameState.currentWeek));
+            if(histB) {
+                if(localCompletedCacheB !== null && histB.completed >= histB.total && localCompletedCacheB < histB.total) {
+                    triggerFullCelebration('userB');
+                }
+                localCompletedCacheB = histB.completed;
+            }
+            
+            updateUI();
+        } catch (e) { console.log("Sync failed"); }
+    }
+
+    function updateUI() {
+        if(!gameState || !gameState.userA || !gameState.userB) return;
+
+        ['userA', 'userB'].forEach(u => {
+            const id = (u === 'userA') ? 'A' : 'B';
+            const user = gameState[u];
+            
+            const current = user.history.find(h => Number(h.week) === Number(gameState.currentWeek));
+            if (current) {
+                const perc = (Number(current.completed) / Number(current.total)) * 100 || 0;
+                document.getElementById('bar' + id).style.width = perc + "%";
+                document.getElementById('txt' + id).innerText = `${current.completed} / ${current.total} (${perc.toFixed(0)}%)`;
+            }
+
+            const allItems = user.history.map(h => h.claimedItem).filter(i => i);
+            document.getElementById('inv' + id).innerText = "🎒 Items: " + (allItems.join(", ") || "None");
+
+            let hasOverdueTask = false;
+            let taskHTML = "";
+            let now = new Date();
+            now.setHours(0,0,0,0);
+
+            user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
+                if(h.tasks && h.tasks.length > 0) {
+                    h.tasks.forEach((t, localIndex) => {
+                        let d = new Date(t.due);
+                        d.setHours(0,0,0,0);
+                        let isOverdue = d < now;
+                        if(isOverdue) hasOverdueTask = true;
+
+                        taskHTML += `
+                            <div class="task-item ${isOverdue ? 'overdue' : ''}">
+                                <button class="task-del-btn" onclick="deleteTask('${u}', ${h.week}, ${localIndex})">×</button>
+                                <strong>${t.desc}</strong>
+                                <span>📅 Due: ${d.getDate()}/${d.getMonth()+1} (Wk ${h.week})</span>
+                            </div>`;
+                    });
+                }
+            });
+            document.getElementById('taskList' + id).innerHTML = taskHTML || "<p style='opacity:0.5; font-size:0.85em;'>No manual tasks! ☀️</p>";
+
+            let finalStatusText = user.status;
+            let imageToUse = user.status;
+
+            if (hasOverdueTask) {
+                if (user.status === "happy") {
+                    finalStatusText = "disappointed";
+                    imageToUse = "disappointed";
+                } else {
+                    finalStatusText = user.status + "/disappointed";
+                    if (user.status === "tired") {
+                        imageToUse = "disappointed";
+                    }
+                }
+            }
+
+            const folder = (id === 'A') ? 'michael' : 'jacinta';
+            document.getElementById('pet' + id).src = `${folder}/${imageToUse}.png?v=${Date.now()}`;
+            document.getElementById('badge' + id).innerText = "Status: " + finalStatusText;
+            document.getElementById('badge' + id).className = `status-badge status-${hasOverdueTask && user.status === 'happy' ? 'disappointed' : user.status}`;
+
+            const bubbleEl = document.getElementById('bubble' + id);
+            bubbleEl.innerText = user.message ? user.message : "💭 ...";
+
+            const replyBox = document.getElementById('replyBox' + id);
+            if(user.reply) {
+                replyBox.innerText = user.reply;
+                replyBox.style.display = "block";
+            } else {
+                replyBox.style.display = "none";
+            }
+
+            const badgeEl = document.getElementById('badgeDisplay' + id);
+            badgeEl.innerText = user.emoji ? user.emoji : "";
+            badgeEl.style.display = user.emoji ? "block" : "none";
+
+            let backHTML = "";
+            let claimAlert = "";
+            user.history.sort((a,b) => Number(a.week) - Number(b.week)).forEach(h => {
+                const isDone = Number(h.completed) >= Number(h.total);
+                const wNum = Number(h.week);
+                
+                if (!isDone && wNum < Number(gameState.currentWeek)) {
+                    let d = new Date(h.date);
+                    backHTML += `<button class="backlog-btn" onclick="addNote('${u}', ${wNum})">Week ${wNum} (${d.getDate()}/${d.getMonth()+1}) (+1) ${h.completed}/${h.total}</button><br>`;
+                }
+                
+                if (isDone && !h.claimedItem && (wNum === Number(gameState.currentWeek) || wNum === Number(gameState.currentWeek) - 1)) {
+                    claimAlert += `<div class="claim-alert" onclick="setShop(${wNum})">🎁 Claim Week ${wNum} Reward!</div>`;
+                }
+            });
+            document.getElementById('history' + id).innerHTML = backHTML || "All caught up! ✨";
+            document.getElementById('claim' + id).innerHTML = claimAlert;
+        });
+
+        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Friends"];
+        const currentCat = catList[(Number(gameState.currentWeek) - 1) % 5] || "Wearables";
+        
+        const header = document.getElementById('weekHeading');
+        header.innerText = `Current Week ${gameState.currentWeek}: ${currentCat}`;
+        header.style.color = "#2d3436"; 
+
+        document.getElementById('prevShopBtn').disabled = (Number(viewingWeek) <= 1);
+        document.getElementById('nextShopBtn').disabled = (Number(viewingWeek) >= Number(gameState.currentWeek));
+
+        renderShop();
+        renderWallOfFame(); 
+    }
+
+    /* New Dynamic Wall of Fame Grid Builder & Pagination Control Router */
+    function renderWallOfFame() {
+        if (!gameState || !gameState.wallOfFame) return;
+        
+        const totalItems = gameState.wallOfFame.length;
+        const itemsPerPage = 2;
+        const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+        
+        if (viewingHofPage > totalPages) viewingHofPage = totalPages;
+        if (viewingHofPage < 1) viewingHofPage = 1;
+
+        document.getElementById('prevHofBtn').disabled = (viewingHofPage <= 1);
+        document.getElementById('nextHofBtn').disabled = (viewingHofPage >= totalPages);
+        document.getElementById('hofTitle').innerText = `🏆 Hall of Fame (Page ${viewingHofPage}/${totalPages})`;
+
+        const startIndex = (viewingHofPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const visiblePets = gameState.wallOfFame.slice(startIndex, endIndex);
+
+        let html = "";
+        if(visiblePets.length === 0) {
+            html = "<p style='opacity:0.5; font-size:0.9em; padding:20px;'>The Wall of Fame is currently peaceful and empty. Retire a pet to immortalize them! 👑</p>";
+        } else {
+            visiblePets.forEach(pet => {
+                const folder = (pet.user === 'userA') ? 'michael' : 'jacinta';
+                let displaySection = "";
+                
+                if (pet.name) {
+                    displaySection = `<div class="hof-name-tag">${pet.name}</div>`;
+                } else {
+                    displaySection = `
+                        <div class="hof-input-row">
+                            <input type="text" id="hofIn${pet.rowID}" class="hof-txt-in" placeholder="Name pet...">
+                            <button class="hof-sub-btn" onclick="submitHofName(${pet.rowID})">Submit</button>
+                        </div>`;
+                }
+
+                html += `
+                    <div class="hof-card">
+                        ${displaySection}
+                        <img src="${folder}/${pet.image}" alt="Hero">
+                    </div>`;
+            });
+        }
+        document.getElementById('hofDisplayShelf').innerHTML = html;
+    }
+
+    function navigateHof(dir) {
+        viewingHofPage += dir;
+        renderWallOfFame();
+    }
+
+    async function submitHofName(rowID) {
+        const inputEl = document.getElementById('hofIn' + rowID);
+        const nameText = inputEl ? inputEl.value.trim() : "";
+        if (!nameText) return alert("Give your retired hero a proper name!");
+
+        const localMatch = gameState.wallOfFame.find(p => p.rowID === rowID);
+        if(localMatch) localMatch.name = nameText;
+        renderWallOfFame();
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "updateHOFName", rowID: rowID, newName: nameText })
+        });
+    }
+
+    function checkAllNotesClean(user) {
+        if(!gameState || !gameState[user]) return false;
+        return gameState[user].history.every(h => Number(h.completed) >= Number(h.total));
+    }
+
+    function clickToFly(user) {
+        if(checkAllNotesClean(user)) {
+            animateFlightSequence(user);
+        } else {
+            alert("Finish all your remaining notes across all weeks first to unlock manual flight mode! 📋✨");
+        }
+    }
+
+    function triggerFullCelebration(user) {
+        animateFlightSequence(user);
+        spawnFullscreenConfetti();
+    }
+
+    function animateFlightSequence(user) {
+        const stage = document.getElementById('animationCanvasOverlay');
+        const frameImg = document.getElementById('animatedDragonflyFrame');
+        
+        const isMichael = (user === 'userA');
+        const folder = isMichael ? 'michael-fly' : 'jacinta-fly';
+        const filePrefix = isMichael ? 'deerfly' : 'dragonfly';
+        
+        let currentFrame = isMichael ? 2 : 1; 
+        const maxFrames = 19;
+        
+        frameImg.src = `${folder}/${filePrefix}${currentFrame}.png`;
+        stage.style.display = 'block';
+        stage.style.animation = 'crossScreenFly 5s linear forwards';
+        
+        const frameInterval = setInterval(() => {
+            currentFrame++;
+            if (currentFrame > maxFrames) {
+                currentFrame = isMichael ? 2 : 1; 
+            }
+            frameImg.src = `${folder}/${filePrefix}${currentFrame}.png`;
+        }, 75);
+
+        setTimeout(() => {
+            clearInterval(frameInterval);
+            stage.style.display = 'none';
+            stage.style.animation = '';
+            frameImg.src = isMichael ? "michael-fly/deerfly2.png" : "jacinta-fly/dragonfly1.png";
+        }, 5000);
+    }
+
+    function setShop(weekID) {
+        viewingWeek = weekID;
+        updateUI();
+    }
+
+    function navigateShop(dir) {
+        if(!gameState) return;
+        const targetWeek = Number(viewingWeek) + dir;
+        if(targetWeek >= 1 && targetWeek <= Number(gameState.currentWeek)) {
+            viewingWeek = targetWeek;
+            updateUI();
+        }
+    }
+
+    function renderShop() {
+        if(!gameState || !gameState.weeklyDrafts) return;
+        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Friends"];
+        const viewCat = catList[(Number(viewingWeek) - 1) % 5];
+        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${viewCat})`;
+
+        const weeklyItems = gameState.weeklyDrafts[viewingWeek] || [];
+        let html = "";
+        
+        if (weeklyItems.length === 0) {
+            document.getElementById('shopItems').innerHTML = "<p style='opacity:0.5;'>Loading week draft items list...</p>";
+            return;
+        }
+
+        const weekClaims = [
+            gameState.userA.history.find(h => Number(h.week) === Number(viewingWeek))?.claimedItem,
+            gameState.userB.history.find(h => Number(h.week) === Number(viewingWeek))?.claimedItem
+        ];
+
+        weeklyItems.forEach(item => {
+            const isSold = weekClaims.includes(item);
+            
+            // 🌟 Updated Lookup: Cleans the variant selector before matching keys
+            const normalizedCurrentItem = normalizeItemName(item);
+            const tooltip = DESCRIPTIONS[normalizedCurrentItem] || "A special item!";
+            
+            html += `
+                <div class="item-wrapper">
+                    <button class="item-btn" ${isSold ? 'disabled' : ''} onclick="claim('${item}')">
+                        ${isSold ? item + ' (Claimed)' : item}
+                    </button>
+                    <span class="tooltip-text">${tooltip}</span>
+                </div>`;
+        });
+        document.getElementById('shopItems').innerHTML = html;
+    }
+
+    async function addNote(user, weekID) {
+        const userHist = gameState[user].history;
+        const weekData = userHist.find(h => Number(h.week) === Number(weekID));
+        if(!weekData) return;
+        
+        weekData.completed++;
+        updateUI();
+        
+        const btnID = (user === 'userA') ? 'btnActionA' : 'btnActionB';
+        const btnEl = document.getElementById(btnID);
+        if(btnEl) {
+            const rect = btnEl.getBoundingClientRect();
+            spawnTargetBurstConfetti(rect.left + (rect.width / 2), rect.top + (rect.height / 2));
+        }
+        
+        if(Number(weekID) === Number(gameState.currentWeek)) {
+            if(weekData.completed === weekData.total) {
+                triggerFullCelebration(user);
+            }
+        }
+        
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
+    }
+
+    async function removeNote(user, weekID) {
+        if(!gameState) return;
+        const userHist = gameState[user].history;
+        const weekData = userHist.find(h => Number(h.week) === Number(weekID));
+        if(!weekData || Number(weekData.completed) <= 0) return; 
+        
+        weekData.completed--;
+        updateUI();
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID, newCount: weekData.completed }) });
+    }
+
+    async function saveMessage(user) {
+        const id = (user === 'userA') ? 'A' : 'B';
+        const msgText = document.getElementById('input' + id).value.trim();
+        if (!msgText) return;
+
+        gameState[user].message = msgText;
+        gameState[user].reply = ""; 
+        gameState[user].emoji = ""; 
+        updateUI();
+        document.getElementById('input' + id).value = ""; 
+
+        await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ user, weekID: gameState.currentWeek, newMessage: msgText }) 
+        });
+    }
+
+    async function saveReply(targetUser) {
+        const id = (targetUser === 'userA') ? 'B' : 'A'; 
+        const replyText = document.getElementById('replyIn' + id).value.trim();
+        if(!replyText) return;
+
+        gameState[targetUser].reply = replyText;
+        updateUI();
+        document.getElementById('replyIn' + id).value = "";
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newReply: replyText })
+        });
+    }
+
+    async function sendReaction(targetUser, emojiChar) {
+        gameState[targetUser].emoji = emojiChar;
+        updateUI();
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newEmoji: emojiChar })
+        });
+    }
+
+    async function clearReaction(user) {
+        if (!gameState || !gameState[user].emoji) return;
+        gameState[user].emoji = "";
+        updateUI();
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: user, weekID: gameState.currentWeek, newEmoji: "" })
+        });
+    }
+
+    async function addTask(user) {
+        const id = (user === 'userA') ? 'A' : 'B';
+        const desc = document.getElementById('taskIn' + id).value.trim();
+        const due = document.getElementById('dateIn' + id).value;
+        if(!desc || !due) return alert("Fill in task details and due date!");
+
+        const currentWeekData = gameState[user].history.find(h => Number(h.week) === Number(gameState.currentWeek));
+        if(!currentWeekData.tasks) currentWeekData.tasks = [];
+        
+        currentWeekData.tasks.push({ desc, due });
+        updateUI();
+
+        document.getElementById('taskIn' + id).value = "";
+        document.getElementById('dateIn' + id).value = "";
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user, weekID: gameState.currentWeek, newTasks: JSON.stringify(currentWeekData.tasks) })
+        });
+    }
+
+    async function deleteTask(user, sourceWeek, targetIndex) {
+        const targetWeekData = gameState[user].history.find(h => Number(h.week) === Number(sourceWeek));
+        if(!targetWeekData || !targetWeekData.tasks) return;
+
+        targetWeekData.tasks.splice(targetIndex, 1);
+        updateUI();
+
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
+        });
+    }
+
+    async function claim(itemName) {
+        const user = prompt("Who is claiming? (userA for Michael / userB for Jacinta)").trim();
+        if (!gameState[user]) return;
+        const weekData = gameState[user].history.find(h => Number(h.week) === Number(viewingWeek));
+        
+        if (Number(weekData.completed) < Number(weekData.total)) {
+            return alert("Finish that week's notes first!");
+        }
+        
+        const resp = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user, weekID: viewingWeek, newItem: itemName }) });
+        const result = await resp.text();
+        if(result === "ALREADY_TAKEN") alert("Too slow! Your opponent already claimed this one.");
+        
+        syncData();
+    }
+
+    /* ========================================================================
+       HTML5 CANVAS CONFETTI PARTICLE SYSTEM ENGINE SCRIPT
+       ======================================================================== */
+    const canvas = document.getElementById("confettiCanvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+    const colors = ["#6c5ce7", "#ff7675", "#fdcb6e", "#00b894", "#0984e3", "#e84393", "#fd79a8"];
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function createParticle(x, y, isFullCelebration) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = isFullCelebration ? (Math.random() * 3 + 2) : (Math.random() * 5 + 4);
+        return {
+            x: x,
+            y: y,
+            size: Math.random() * 6 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            vx: Math.cos(angle) * speed,
+            vy: isFullCelebration ? (Math.random() * -3 - 1) : (Math.sin(angle) * speed) - 2,
+            gravity: isFullCelebration ? 0.12 : 0.25,
+            opacity: 1,
+            rotation: Math.random() * 360,
+            rotationSpeed: Math.random() * 4 - 2
+        };
+    }
+
+    function spawnFullscreenConfetti() {
+        for (let i = 0; i < 150; i++) {
+            particles.push(createParticle(Math.random() * canvas.width, Math.random() * -50, true));
+        }
+    }
+
+    function spawnTargetBurstConfetti(x, y) {
+        for (let i = 0; i < 30; i++) {
+            particles.push(createParticle(x, y, false));
+        }
+    }
+
+    function updateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.rotation += p.rotationSpeed;
+            p.opacity -= 0.015;
+            if (p.opacity <= 0 || p.y > canvas.height || p.x < 0 || p.x > canvas.width) {
+                particles.splice(i, 1);
+                continue;
+            }
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.globalAlpha = p.opacity;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+            ctx.restore();
+        }
+        requestAnimationFrame(updateParticles);
+    }
+    requestAnimationFrame(updateParticles);
+
+    cacheBustPreloader();
+    syncData();
+    setInterval(syncData, 30000);
+</script>
+</body>
+</html>
