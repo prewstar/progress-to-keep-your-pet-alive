@@ -209,7 +209,7 @@
                     <!-- User Card: Pet and Stats -->
                     <div class="user-card">
                         <div class="bubble-container">
-                            <div class="thought-bubble-wrapper">
+                            <div class="thought-bubble-wrapper" id="thoughtWrapper_${safeId}">
                                 <div id="bubble_${safeId}" class="thought-bubble">💭 ...</div>
                                 <div id="badgeDisplay_${safeId}" class="emoji-badge" title="Click to remove reaction" onclick="clearReaction('${userName}')"></div>
                             </div>
@@ -336,7 +336,13 @@
             document.getElementById('badge_' + safeId).innerText = "Status: " + finalStatusText;
             document.getElementById('badge_' + safeId).className = `status-badge status-${hasOverdueTask && userObj.status === 'happy' ? 'disappointed' : userObj.status}`;
 
-            document.getElementById('bubble_' + safeId).innerText = userObj.message ? userObj.message : "💭 ...";
+            const thoughtWrapper = document.getElementById('thoughtWrapper_' + safeId);
+            if (userObj.message) {
+                document.getElementById('bubble_' + safeId).innerText = userObj.message;
+                thoughtWrapper.style.display = "inline-block";
+            } else {
+                thoughtWrapper.style.display = "none";
+            }
 
             const replyBox = document.getElementById('replyBox_' + safeId);
             if(userObj.reply) {
