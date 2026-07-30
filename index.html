@@ -205,17 +205,6 @@
 
                 html += `
                 <div class="user-column" id="col_${safeId}">
-                    
-                    <!-- Sidebar: Tasks -->
-                    <div class="sidebar">
-                        <h4>📋 ${userName}'s Tasks</h4>
-                        <div id="taskList_${safeId}"></div>
-                        <div class="task-form">
-                            <input type="text" id="taskIn_${safeId}" placeholder="Task description...">
-                            <input type="date" id="dateIn_${safeId}">
-                            <button onclick="addTask('${userName}')">Add Task</button>
-                        </div>
-                    </div>
 
                     <!-- User Card: Pet and Stats -->
                     <div class="user-card">
@@ -267,6 +256,17 @@
                             <button class="emoji-mini-btn" onclick="sendReaction('${userName}','😮')">😮</button>
                             <button class="emoji-mini-btn" onclick="sendReaction('${userName}','😢')">😢</button>
                             <button class="emoji-mini-btn" onclick="sendReaction('${userName}','😫')">😫</button>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar: Tasks -->
+                    <div class="sidebar">
+                        <h4>📋 ${userName}'s Tasks</h4>
+                        <div id="taskList_${safeId}"></div>
+                        <div class="task-form">
+                            <input type="text" id="taskIn_${safeId}" placeholder="Task description...">
+                            <input type="date" id="dateIn_${safeId}">
+                            <button onclick="addTask('${userName}')">Add Task</button>
                         </div>
                     </div>
 
