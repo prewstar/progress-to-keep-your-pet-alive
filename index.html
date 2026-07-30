@@ -42,7 +42,7 @@
         button.undo-btn:hover { background: #fab1a0; }
         .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
         
-        .bubble-container { display: flex; flex-direction: column; align-items: center; min-height: 135px; gap: 8px; margin-bottom: 5px; justify-content: flex-end; position: relative; }
+        .bubble-container { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 5px; justify-content: flex-end; position: relative; }
         .thought-bubble-wrapper { position: relative; max-width: 85%; display: inline-block; }
         .thought-bubble { background: #fff; border: 2px solid #2d3436; border-radius: 15px; padding: 8px 12px; font-style: italic; font-size: 0.85em; font-weight: bold; box-shadow: 3px 3px 0px rgba(0,0,0,0.1); color: #2d3436; text-align: center; }
         .thought-bubble-wrapper::after, .thought-bubble-wrapper::before { content: ''; position: absolute; background: #fff; border: 2px solid #2d3436; border-radius: 50%; }
@@ -51,7 +51,7 @@
         
         .emoji-badge { position: absolute; top: -12px; right: -12px; font-size: 1.4em; background: transparent; border: none; padding: 0; z-index: 5; filter: drop-shadow(1px 2px 1px rgba(0,0,0,0.2)); cursor: pointer; transition: transform 0.1s; }
         .emoji-badge:hover { transform: scale(1.2); }
-        .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: center; position: relative; }
+        .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: center; position: relative; white-space: pre-wrap; margin-top: 5px; }
 
         .control-panel-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 15px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #e2e8f0; }
         .control-row { display: flex; gap: 6px; }
@@ -655,13 +655,18 @@
         if(!replyText || !targetUser) return;
 
         const formattedReply = `[${sourceUser}] ${replyText}`;
-        gameState.userData[targetUser].reply = formattedReply;
+        const existingReply = gameState.userData[targetUser].reply || "";
+    
+        // NEW: If a reply already exists, add a line break (\n) before stacking the new one
+        const combinedReply = existingReply ? existingReply + "\n" + formattedReply : formattedReply;
+
+        gameState.userData[targetUser].reply = combinedReply;
         updateUI();
         document.getElementById('replyIn_' + sourceSafeId).value = "";
 
         await fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newReply: formattedReply })
+            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newReply: combinedReply })
         });
     }
 
