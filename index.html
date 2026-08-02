@@ -491,7 +491,7 @@
     function renderWallOfFame() {
         if (!gameState || !gameState.wallOfFame) return;
         const totalItems = gameState.wallOfFame.length;
-        const itemsPerPage = 2;
+        const itemsPerPage = 4;
         const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
         
         if (viewingHofPage > totalPages) viewingHofPage = totalPages;
