@@ -279,7 +279,7 @@
                             </div>
                             <div id="replyBox_${safeId}" class="reply-bubble" style="display:none;"></div>
                         </div>
-                        <img id="pet_${safeId}" class="pet-sprite" src="" onclick="clickToFly('${userName}')">
+                        <img id="pet_${safeId}" class="pet-sprite" src="" onclick="clickToFly('${userName}')" onerror="if (this.src.endsWith('.jpg')) { this.src = this.src.replace('.jpg', '.png'); }">
                         <div id="badge_${safeId}" class="status-badge status-happy">Status: Happy</div>
                         <h3>${userName}</h3>
                         <div class="progress-container"><div id="bar_${safeId}" class="progress-fill"></div></div>
@@ -403,7 +403,7 @@
                 }
             }
 
-            document.getElementById('pet_' + safeId).src = `${folder}/${imageToUse}.png?v=${Date.now()}`;
+            document.getElementById('pet_' + safeId).src = `${folder}/${imageToUse}.jpg`;
             document.getElementById('badge_' + safeId).innerText = "Status: " + finalStatusText;
             document.getElementById('badge_' + safeId).className = `status-badge status-${hasOverdueTask && userObj.status === 'happy' ? 'disappointed' : userObj.status}`;
 
