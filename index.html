@@ -532,25 +532,27 @@
             html = "<p style='opacity:0.5; font-size:0.9em; padding:20px;'>The Wall of Fame is currently peaceful and empty. Retire a pet to immortalize them! 👑</p>";
         } else {
             visiblePets.forEach(pet => {
-                const folder = pet.user.toLowerCase();
-                let displaySection = "";
-                
-                if (pet.name) {
-                    displaySection = `<div class="hof-name-tag">${pet.name}</div>`;
-                } else {
-                    displaySection = `
-                        <div class="hof-input-row">
-                            <input type="text" id="hofIn${pet.rowID}" class="hof-txt-in" placeholder="Name pet...">
-                            <button class="hof-sub-btn" onclick="submitHofName(${pet.rowID})">Submit</button>
-                        </div>`;
-                }
+    const folder = pet.user.toLowerCase().trim();
+    const imageName = (pet.image || '').trim(); // 🌟 Strips hidden spaces from Google Sheet cells
+    let displaySection = "";
+    
+    if (pet.name) {
+        displaySection = `<div class="hof-name-tag">${pet.name}</div>`;
+    } else {
+        displaySection = `
+            <div class="hof-input-row">
+                <input type="text" id="hofIn${pet.rowID}" class="hof-txt-in" placeholder="Name pet...">
+                <button class="hof-sub-btn" onclick="submitHofName(${pet.rowID})">Submit</button>
+            </div>`;
+    }
 
-                html += `
-                    <div class="hof-card">
-                        ${displaySection}
-                        <img src="${folder}/${pet.image}" alt="Hero">
-                    </div>`;
-            });
+    // 🌟 Added trim() and automatic .jpg <-> .png fallback if one extension fails
+    html += `
+        <div class="hof-card">
+            ${displaySection}
+            <img src="${folder}/${imageName}" alt="Hero" onerror="if (this.src.endsWith('.jpg')) { this.src = this.src.replace('.jpg', '.png'); } else if (this.src.endsWith('.png')) { this.src = this.src.replace('.png', '.jpg'); }">
+        </div>`;
+});
         }
         document.getElementById('hofDisplayShelf').innerHTML = html;
     }
