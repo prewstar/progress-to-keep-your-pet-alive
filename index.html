@@ -417,7 +417,7 @@
                 }
             }
 
-            document.getElementById('pet_' + safeId).src = `${folder}/${imageToUse}.jpg`;
+            document.getElementById('pet_' + safeId).src = `${folder}/${imageToUse}.jpg?v=${Date.now()}`;
             document.getElementById('badge_' + safeId).innerText = "Status: " + finalStatusText;
             document.getElementById('badge_' + safeId).className = `status-badge status-${hasOverdueTask && userObj.status === 'happy' ? 'disappointed' : userObj.status}`;
 
