@@ -293,7 +293,7 @@
                             </div>
                             <div id="replyBox_${safeId}" class="reply-bubble" style="display:none;"></div>
                         </div>
-                        <img id="pet_${safeId}" class="pet-sprite" src="" onclick="clickToFly('${userName}')" onerror="if (this.src.endsWith('.jpg')) { this.src = this.src.replace('.jpg', '.png'); }">
+                        <img id="pet_${safeId}" class="pet-sprite" src="" onclick="clickToFly('${userName}')" onerror="if (this.src.indexOf('.jpg') !== -1) { this.src = this.src.replace('.jpg', '.png'); } else if (this.src.indexOf('.png') !== -1) { this.src = this.src.replace('.png', '.jpg'); }">
                         <div id="badge_${safeId}" class="status-badge status-happy">Status: Happy</div>
                         <h3>${userName}</h3>
                         <div class="progress-container"><div id="bar_${safeId}" class="progress-fill"></div></div>
