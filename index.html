@@ -393,11 +393,17 @@
                         d.setHours(0,0,0,0);
                         let isOverdue = d < now;
                         if(isOverdue) hasOverdueTask = true;
+                        // Ensure the date is in the YYYY-MM-DD format required by the date input
+                        let formattedDate = t.due;
+                        if (formattedDate && formattedDate.includes('T')) {
+                            formattedDate = formattedDate.split('T')[0];
+                        }
+
                         taskHTML += `
                             <div class="task-item ${isOverdue ? 'overdue' : ''}">
                                 <button class="task-del-btn" onclick="deleteTask('${userName}', ${h.week}, ${localIndex})">×</button>
                                 <strong>${t.desc}</strong>
-                                <span>📅 Due: ${d.getDate()}/${d.getMonth()+1} (Wk ${h.week})</span>
+                                <span>📅 Due: <input type="date" value="${formattedDate}" onchange="editTaskDate('${userName}', ${h.week}, ${localIndex}, this.value)" style="border: none; background: transparent; color: inherit; font-size: 1em; cursor: pointer; outline: none; font-family: inherit;"> (Wk ${h.week})</span>
                             </div>`;
                     });
                 }
@@ -750,6 +756,26 @@
         targetWeekData.tasks.splice(targetIndex, 1);
         updateUI();
 
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
+        });
+    }
+
+    async function editTaskDate(userName, sourceWeek, targetIndex, newDateValue) {
+        if (!newDateValue) return;
+
+        // Find the specific week's data
+        const targetWeekData = gameState.userData[userName].history.find(h => Number(h.week) === Number(sourceWeek));
+        if(!targetWeekData || !targetWeekData.tasks) return;
+
+        // Update the date in the local array
+        targetWeekData.tasks[targetIndex].due = newDateValue;
+        
+        // Optimistically update the UI so it reflects instantly
+        updateUI();
+
+        // Send the updated tasks array back to the Google Sheet
         await fetch(API_URL, {
             method: 'POST',
             body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
