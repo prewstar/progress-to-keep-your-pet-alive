@@ -67,8 +67,34 @@
 
         .sidebar { background: #ffffff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
         .sidebar h4 { margin-top: 0; color: #2d3436; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .task-item { background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #94a3b8; font-size: 0.8em; position: relative; }
-        .task-item.overdue { border-left-color: #ef4444; background: #fef2f2; }
+        .task-item { padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #94a3b8; font-size: 0.8em; position: relative; transition: background 0.3s ease; }
+
+        /* The Shame Scale (When not overdue) */
+        .task-item.shame-0 { background: #f8fafc; color: #334155; } /* Grey (Default) */
+        .task-item.shame-1 { background: #fef08a; color: #713f12; } /* Soft Yellow */
+        .task-item.shame-2 { background: #fed7aa; color: #7c2d12; } /* Warm Orange */
+        .task-item.shame-3 { background: #fecaca; color: #7f1d1d; } /* Pale Red */
+        .task-item.shame-4 { background: #f87171; color: #ffffff; } /* Darker Red */
+        .task-item.shame-5 { 
+            background-color: #dc2626; 
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text x='6' y='22' font-size='16' opacity='0.22'>&#10060;</text></svg>");
+            color: #ffffff; 
+        } /* Deep Red with repeating ❌ emoji watermark */
+
+        /* White text overrides for dark shame cards */
+        .task-item.shame-4 strong, .task-item.shame-4 span,
+        .task-item.shame-5 strong, .task-item.shame-5 span { color: #ffffff !important; }
+        .task-item.shame-4 .task-del-btn, .task-item.shame-5 .task-del-btn { color: #fecaca; }
+
+        /* Basic Red for Overdue (Overrides shame colors and turns left border red) */
+        .task-item.overdue { 
+            border-left-color: #ef4444 !important; 
+            background: #ff7675 !important; 
+            background-image: none !important;
+            color: #ffffff !important;
+        }
+        .task-item.overdue strong, .task-item.overdue span { color: #ffffff !important; }
+        .task-item.overdue .task-del-btn { color: #ffeaa7; }
         .task-item strong { display: block; color: #334155; font-size: 1.05em; margin-bottom: 2px; }
         .task-item span { color: #64748b; font-size: 0.9em; }
         .task-del-btn { position: absolute; top: 4px; right: 4px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1em; }
@@ -399,11 +425,20 @@
                             formattedDate = formattedDate.split('T')[0];
                         }
 
+                        // Determine shame level based on reschedule counter
+                        const delays = t.delayCount || 0;
+                        let shameClass = "shame-0";
+                        if (delays === 1) shameClass = "shame-1";
+                        else if (delays === 2) shameClass = "shame-2";
+                        else if (delays === 3) shameClass = "shame-3";
+                        else if (delays === 4) shameClass = "shame-4";
+                        else if (delays >= 5) shameClass = "shame-5";
+
                         taskHTML += `
-                            <div class="task-item ${isOverdue ? 'overdue' : ''}">
+                            <div class="task-item ${isOverdue ? 'overdue' : shameClass}">
                                 <button class="task-del-btn" onclick="deleteTask('${userName}', ${h.week}, ${localIndex})">×</button>
                                 <strong>${t.desc}</strong>
-                                <span>📅 Due: <input type="date" value="${formattedDate}" onchange="editTaskDate('${userName}', ${h.week}, ${localIndex}, this.value)" style="border: none; background: transparent; color: inherit; font-size: 1em; cursor: pointer; outline: none; font-family: inherit;"> (Wk ${h.week})</span>
+                                <span>📅 Due: <input type="date" value="${formattedDate}" onchange="editTaskDate('${userName}', ${h.week}, ${localIndex}, this.value)" style="border: none; background: transparent; color: inherit; font-size: 1em; cursor: pointer; outline: none; font-family: inherit;"> (Wk ${h.week})${delays > 0 ? ` • ⚠️ Pushed ${delays}x` : ''}</span>
                             </div>`;
                     });
                 }
@@ -765,21 +800,27 @@
     async function editTaskDate(userName, sourceWeek, targetIndex, newDateValue) {
         if (!newDateValue) return;
 
-        // Find the specific week's data
         const targetWeekData = gameState.userData[userName].history.find(h => Number(h.week) === Number(sourceWeek));
         if(!targetWeekData || !targetWeekData.tasks) return;
 
-        // Update the date in the local array
-        targetWeekData.tasks[targetIndex].due = newDateValue;
+        const task = targetWeekData.tasks[targetIndex];
         
-        // Optimistically update the UI so it reflects instantly
-        updateUI();
+        // Normalize existing date for comparison so clicking without changing doesn't penalize
+        let oldDate = task.due;
+        if (oldDate && oldDate.includes('T')) oldDate = oldDate.split('T')[0];
 
-        // Send the updated tasks array back to the Google Sheet
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
-        });
+        if (oldDate !== newDateValue) {
+            task.due = newDateValue;
+            // Increment shame counter
+            task.delayCount = (task.delayCount || 0) + 1;
+            
+            updateUI();
+
+            await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
+            });
+        }
     }
 
     async function claim(itemName) {
