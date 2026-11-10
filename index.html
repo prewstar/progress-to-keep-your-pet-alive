@@ -531,7 +531,11 @@
         let weekClaims = [];
         gameState.users.forEach(userName => {
             let hist = gameState.userData[userName].history.find(h => Number(h.week) === Number(viewingWeek));
-            if(hist && hist.claimedItem) weekClaims.push(hist.claimedItem);
+            if(hist && hist.claimedItem) {
+                // Strip the tag off behind the scenes so the shop correctly disables the button
+                let normalizedItem = hist.claimedItem.replace(" 🥇(1st)", "").replace(" (1st)", "");
+                weekClaims.push(normalizedItem);
+            }
         });
 
         let html = "";
