@@ -441,7 +441,11 @@
 
         const header = document.getElementById('weekHeading');
         if (header) {
-            header.innerText = `Current Week ${gameState.currentWeek}`;
+            // Figure out the current category based on the week number
+            const catList = (gameState.categories && gameState.categories.length > 0) ? gameState.categories : ["Rewards"];
+            const currentCat = catList[(Number(gameState.currentWeek) - 1) % catList.length];
+            
+            header.innerText = `Current Week ${gameState.currentWeek}: ${currentCat}`;
             header.style.color = "#2d3436"; 
         }
 
@@ -454,7 +458,12 @@
 
     function renderShop() {
         if(!gameState || !gameState.weeklyDrafts) return;
-        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft`;
+        
+        // Figure out the shop category based on the week being viewed
+        const catList = (gameState.categories && gameState.categories.length > 0) ? gameState.categories : ["Rewards"];
+        const viewCat = catList[(Number(viewingWeek) - 1) % catList.length];
+        
+        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${viewCat})`;
 
         const weeklyItems = gameState.weeklyDrafts[viewingWeek];
         if (!weeklyItems || weeklyItems.length === 0) {
