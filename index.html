@@ -9,15 +9,14 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; overflow-x: hidden; }
         .container { max-width: 1400px; margin: auto; position: relative; }
         
-        /* Updated Layout for dynamic N-clinicians */
         .main-layout { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; align-items: flex-start; }
         .user-column { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 340px; }
         
-        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .user-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; position: relative;}
         .pet-sprite { width: 240px; height: 240px; object-fit: contain; margin: 10px auto; display: block; cursor: pointer; transition: transform 0.2s; }
         .pet-sprite:hover { transform: scale(1.05); }
         
-        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; margin-bottom: 10px; text-transform: uppercase; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.7em; text-transform: uppercase; }
         .status-happy { background: #55efc4; color: #00b894; }
         .status-tired { background: #ffeaa7; color: #fdcb6e; }
         .status-sick { background: #fab1a0; color: #e17055; }
@@ -39,8 +38,6 @@
         .action-container-row { display: flex; gap: 6px; margin-bottom: 5px; }
         button.action-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; position: relative; }
         button.undo-btn { width: 45px; padding: 12px 0; border: none; border-radius: 8px; background: #ffeaa7; color: #d63031; font-weight: bold; cursor: pointer; font-size: 0.9em; }
-        button.undo-btn:hover { background: #fab1a0; }
-        .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
         
         .bubble-container { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 5px; justify-content: flex-end; position: relative; }
         .thought-bubble-wrapper { position: relative; max-width: 85%; display: inline-block; }
@@ -49,7 +46,7 @@
         .thought-bubble-wrapper::after { width: 7px; height: 7px; bottom: -10px; left: 48%; }
         .thought-bubble-wrapper::before { width: 4px; height: 4px; bottom: -15px; left: 46%; }
         
-        .emoji-badge { position: absolute; top: -12px; right: -12px; font-size: 1.4em; background: transparent; border: none; padding: 0; z-index: 5; filter: drop-shadow(1px 2px 1px rgba(0,0,0,0.2)); cursor: pointer; transition: transform 0.1s; }
+        .emoji-badge { position: absolute; top: -12px; right: -12px; font-size: 1.4em; background: transparent; border: none; padding: 0; z-index: 5; cursor: pointer; transition: transform 0.1s; }
         .emoji-badge:hover { transform: scale(1.2); }
         .reply-bubble { background: #e0dbff; border: 2px solid #6c5ce7; border-radius: 12px; padding: 6px 10px; max-width: 80%; font-size: 0.8em; font-weight: 600; color: #2d3436; box-shadow: 2px 2px 0px rgba(0,0,0,0.05); word-break: break-word; text-align: center; position: relative; white-space: pre-wrap; margin-top: 5px; }
 
@@ -57,10 +54,7 @@
         .control-row { display: flex; gap: 6px; }
         .msg-input { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85em; }
         .msg-btn { background: #2d3436; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
-        .msg-btn:hover { background: #4b5563; }
         .reply-accent-btn { background: #6c5ce7; }
-        .reply-accent-btn:hover { background: #5649c0; }
-        
         .emoji-selector { display: flex; gap: 4px; margin-top: 2px; align-items: center; justify-content: center; flex-wrap: wrap;}
         .emoji-mini-btn { background: none; border: none; font-size: 1.1em; cursor: pointer; transition: transform 0.1s; padding: 2px; }
         .emoji-mini-btn:hover { transform: scale(1.3); }
@@ -69,42 +63,25 @@
         .sidebar h4 { margin-top: 0; color: #2d3436; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .task-item { padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #94a3b8; font-size: 0.8em; position: relative; transition: background 0.3s ease; }
 
-        /* The Shame Scale (When not overdue) */
-        .task-item.shame-0 { background: #f8fafc; color: #334155; } /* Grey (Default) */
-        .task-item.shame-1 { background: #fef08a; color: #713f12; } /* Soft Yellow */
-        .task-item.shame-2 { background: #fed7aa; color: #7c2d12; } /* Warm Orange */
-        .task-item.shame-3 { background: #fecaca; color: #7f1d1d; } /* Pale Red */
-        .task-item.shame-4 { background: #f87171; color: #ffffff; } /* Darker Red */
-        .task-item.shame-5 { 
-            background-color: #dc2626; 
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text x='6' y='22' font-size='16' opacity='0.22'>&#10060;</text></svg>");
-            color: #ffffff; 
-        } /* Deep Red with repeating ❌ emoji watermark */
-
-        /* White text overrides for dark shame cards */
-        .task-item.shame-4 strong, .task-item.shame-4 span,
-        .task-item.shame-5 strong, .task-item.shame-5 span { color: #ffffff !important; }
+        .task-item.shame-0 { background: #f8fafc; color: #334155; } 
+        .task-item.shame-1 { background: #fef08a; color: #713f12; } 
+        .task-item.shame-2 { background: #fed7aa; color: #7c2d12; } 
+        .task-item.shame-3 { background: #fecaca; color: #7f1d1d; } 
+        .task-item.shame-4 { background: #f87171; color: #ffffff; } 
+        .task-item.shame-5 { background-color: #dc2626; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text x='6' y='22' font-size='16' opacity='0.22'>&#10060;</text></svg>"); color: #ffffff; }
+        .task-item.shame-4 strong, .task-item.shame-4 span, .task-item.shame-5 strong, .task-item.shame-5 span { color: #ffffff !important; }
         .task-item.shame-4 .task-del-btn, .task-item.shame-5 .task-del-btn { color: #fecaca; }
-
-        /* Basic Red for Overdue (Overrides shame colors and turns left border red) */
-        .task-item.overdue { 
-            border-left-color: #ef4444 !important; 
-            background: #ff7675 !important; 
-            background-image: none !important;
-            color: #ffffff !important;
-        }
+        .task-item.overdue { border-left-color: #ef4444 !important; background: #ff7675 !important; background-image: none !important; color: #ffffff !important; }
         .task-item.overdue strong, .task-item.overdue span { color: #ffffff !important; }
         .task-item.overdue .task-del-btn { color: #ffeaa7; }
         .task-item strong { display: block; color: #334155; font-size: 1.05em; margin-bottom: 2px; }
         .task-item span { color: #64748b; font-size: 0.9em; }
         .task-del-btn { position: absolute; top: 4px; right: 4px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1em; }
-        .task-del-btn:hover { color: #ef4444; }
         .task-form { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e2e8f0; }
         .task-form input { padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.8em; }
         .task-form button { background: #6c5ce7; color: white; border: none; padding: 6px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8em; }
 
         .shop-nav-btn { background: #4b5563; border: none; color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; margin: 0 10px; vertical-align: middle; }
-        .shop-nav-btn:hover { background: #6b7280; }
         .shop-nav-btn:disabled { background: #1f2937; opacity: 0.3; cursor: not-allowed; }
         .shop-header-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
 
@@ -116,12 +93,19 @@
         .hof-box { background: #ffffff; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; margin-top: 20px; border: 1px solid #e2e8f0; text-align: center; }
         .hof-title-container { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 10px; }
         .hof-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; min-height: 260px; }
-        .hof-card { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; width: 260px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; /* 🌟 Spaces out name tag and image cleanly */gap: 12px; }
-        .hof-card img { width: 100%;             /* 🌟 Expand image to fill full card width */max-height: 200px;       /* 🌟 Allow tall/square pics to expand up to 200px high */object-fit: contain;     /* 🌟 Keeps proper proportions without stretching or cropping */margin: 0 auto;  display: block; }
+        .hof-card { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; width: 260px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
+        .hof-card img { width: 100%; max-height: 200px; object-fit: contain; margin: 0 auto; display: block; }
         .hof-name-tag { font-family: 'Trebuchet MS', sans-serif; font-size: 1.2em; font-weight: bold; color: #4f46e5; margin-bottom: 4px; word-break: normal; overflow-wrap: break-word; }
         .hof-input-row { display: flex; flex-direction: column; gap: 4px; }
         .hof-txt-in { font-size: 0.75em; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
         .hof-sub-btn { background: #2d3436; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
+        .claim-alert { background: #feca57; color: #2d3436; padding: 10px; border-radius: 8px; margin: 10px 0; font-weight: bold; cursor: pointer; border: 2px solid #ff9f43; font-size: 0.9em; }
+
+        /* Help Modal CSS */
+        .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; text-align: left; }
+        .modal-close { float: right; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #e17055; font-weight: bold; }
+        .help-btn { position: absolute; top: 20px; right: 20px; background: #00b894; color: white; padding: 8px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -129,11 +113,45 @@
 <canvas id="confettiCanvas"></canvas>
 <div id="animationCanvasOverlay"><img id="animatedDragonflyFrame" src="" alt="Celebrating!"></div>
 
+<!-- HELP MODAL -->
+<button class="help-btn" onclick="document.getElementById('helpModal').style.display='flex'">📖 Help & Rules</button>
+<div id="helpModal" class="modal-bg">
+    <div class="modal-content">
+        <button class="modal-close" onclick="document.getElementById('helpModal').style.display='none'">×</button>
+        <h2 style="margin-top:0; color:#6c5ce7;">📖 Note Guardian Guide</h2>
+        
+        <h4>🐾 The Creature Lifecyle</h4>
+        <ul>
+            <li><strong>Happy (Green):</strong> Up to date! You can interact and "Play" with your pet!</li>
+            <li><strong>Tired (Yellow):</strong> Notes are 1+ week behind.</li>
+            <li><strong>Sick (Orange):</strong> Notes are 2+ weeks behind.</li>
+            <li><strong>Coma (Blue):</strong> Notes are 3+ weeks behind.</li>
+        </ul>
+        
+        <h4>🎁 The Reward Draft</h4>
+        <ul>
+            <li>Finish your notes for a given week to unlock a draft pick.</li>
+            <li><strong>The 10-Day Rule:</strong> Up until Wednesday 12 PM (10 days after a week starts), multiple people can claim the *same* item! If you claim it before the deadline, it stays available for others, and you get a 🥇 First Medal!</li>
+            <li>After the deadline, it's a strict draft—once someone claims an item, it's gone for everyone else.</li>
+        </ul>
+
+        <h4>⏸️ Pausing</h4>
+        <ul>
+            <li>Going on leave? Click "Pause" in your console. Your pet will freeze in a Happy state and will not get tired/sick while you are gone.</li>
+        </ul>
+
+        <h4>📋 Tasks & Shame Scale</h4>
+        <ul>
+            <li>You can assign yourself manual to-do tasks.</li>
+            <li>Clicking a task's date lets you delay it, but beware the "Shame Scale"! Delay it too many times and the card will slowly turn dark red and get crossed out.</li>
+        </ul>
+    </div>
+</div>
+
 <div class="container">
     <h1 style="text-align:center;">🐾 Note Guardians</h1>
     <h3 id="weekHeading" style="text-align:center; color: #6c5ce7;">Syncing with Sheet...</h3>
 
-    <!-- Dynamic Container for all Clinicians -->
     <div id="usersContainer" class="main-layout"></div>
 
     <div class="shop-box">
@@ -158,108 +176,16 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
-    // Configuration to support custom prefixes for specific clinicians without renaming existing files
     const CLINICIAN_CONFIG = {
         "Michael": { flyPrefix: "deerfly" },
         "Jacinta": { flyPrefix: "dragonfly" }
     };
-    // Default config used for Jodie and anyone added in the future:
     const DEFAULT_CONFIG = { flyPrefix: "fly" }; 
 
     function normalizeItemName(str) {
         if (!str) return "";
         return str.replace(/[\uFE00-\uFE0F]/g, "").trim();
     }
-
-    const RAW_DESCRIPTIONS = {
-        "Animal Onesie": "🐾 Complete with soft ears and a tail that wiggles.",
-        "Sharp Suit": "💼 Looking slick, professional, and ready for business.",
-        "Graphic T-Shirt": "👕 Features a retro pixel-art icon on the front.",
-        "Fluffy Dressing Gown": "🛌 Soft, cozy, and perfect for lazy mornings.",
-        "Superhero Cape": "🦸 Swishes dramatically in the wind, even indoors.",
-        "Punk Rock Outfit": "🎸 Loaded with safety pins, studs, and attitude.",
-        "Over-sized Yellow Raincoat": "🧥 Complete with little matching boots.",
-        "Overalls": "👖 We'll make a farmer of you yet.",
-        "Cardboard Armor": "🛡️ For the brave (but fragile) hero.",
-        "Wizard Costume": "🧙‍♂️ Comes with a pointy hat and starry robes.",
-        "🐭Wind-up Mouse/Rubber Duck🦆": "🐭🦆 Zips around in circles.",
-        "🪗Toy Musical Instrument": "🪗 Makes delightful (if slightly off-key) tunes.",
-        "🦖Squeaky Dino": "🦖 Makes a high-pitched mewp sound. Squeaks loudest at 3:00 AM.",
-        "🧶Infinite Yarn": "🧶 A cozy ball of wool that never runs out.",
-        "🫧Bubble Blower": "🫧 Floats iridescent bubbles all around the room.",
-        "🪀Fidget Spinner": "🪀 Keeps busy little hands occupied for hours. (or choose your own other fidget)",
-        "🧸Mini-Me Plushie": "🧸 A huggably soft, pint-sized version of themselves.",
-        "🦹Action Figure": "🦹 Complete with kung-fu grip and heroic pose.",
-        "🐾Pocket Pet": "🐾 A tiny, loyal friend that fits right in their pocket.",
-        "🎲Mini Board Game": "🎲 Roll the dice and try not to flip the board.",
-        "📖Story Book": "📖 Filled with magical tales and colorful pictures.",
-        "🧩Unfinished Lego Set": "🧩 Only three steps left, but where did that last piece go?",
-        "🏮Glowing Jellyfish Lamp": "🏮 Hovers slightly off the ground.",
-        "🚂Miniature Train": "🚂 Just big enough for them to sit in.",
-        "🫧Heart Bubbles": "🫧 Creates floating heart-shaped bubbles.",
-        "🎮Handheld Console": "🎮 A tiny device for your pet to play.",
-        "🎠Wooden Rocking Horse": "🎠 Perfectly sized for a ride.",
-        "✨Bouncy Star Ball🏐": "✨ Leaves a trail of glitter.",
-        "Star-shaped Watermelon": "🍉 Tastes like summer.",
-        "Firefly Honey": "🍯 Glows in the dark.",
-        "Rainbow Macaron": "🍪 A different flavor in every bite.",
-        "Strawberry Milk Box": "🥤 Complete with a tiny straw.",
-        "Heart-shaped Jam Cookie": "🍓 Leaves a trail of crumbs.",
-        "Moon-Cheese": "🧀 Mildly cratered and very savory.",
-        "Sparkling Soda": "🍹 Causes the pet to emit tiny sparkles.",
-        "☁️Cotton Candy Cloud": "☁️ Occasionally drifts upward. Tastes like sweet blue skies and melts instantly on your tongue.",
-        "🌰Lucky Acorn": "🌰 Polished to a shine and guaranteed to bring good fortune.",
-        "🌻Giant Sunflower Seed": "🌻 Bigger than your head and packed with delicious crunch.",
-        "🍝Infinite Spaghetti": "🍝 No matter how much you twirl, the bowl never empties.",
-        "🍨Ice Cream Sundae": "🍨 Topped with a cherry that somehow stays cold forever.",
-        "🥞Stack of Pancakes": "🥞 Dripping with maple syrup and fluffy beyond belief.",
-        "🍿Movie Popcorn": "🍿 Perfectly buttered, salty, and endlessly snackable.",
-        "🧋Boba Tea": "🧋 Sweet, icy goodness with chewy tapioca pearls at the bottom.",
-        "🍣Sushi": "🍣 A tiny, bite-sized work of culinary art.",
-        "🍩Doughnuts": "🍩 Warm, glazed to perfection, and covered in rainbow sprinkles.",
-        "🌋Lava Lamp": "🌋 Groovy floating blobs that are hypnotically soothing to watch.",
-        "🪵Mossy Log": "🪵 Looks like damp nature, but feels like sitting on a cloud.",
-        "🔮Terrarium Globe": "🔮 A tiny, self-sustaining magical forest trapped in glass.",
-        "☁️Shag Cloud Rug": "☁️ So soft it feels like stepping on soft morning mist.",
-        "🪴Talking Plant": "🪴 Always offers unsolicited but surprisingly good advice.",
-        "🌌Space Projector": "🌌 Turns your ceiling into a swirling, starlit galaxy.",
-        "🖼️Poster": "🖼️ Swaps its artwork depending on what mood you're in.",
-        "🧩Completed Lego Set": "🧩 Built with incredible patience and locked with zero missing pieces.",
-        "🍄Mushroom Stool": "🍄 A cozy place to sit.",
-        "Teacup Bed": "☕ Lined with silk pillows.",
-        "Ghost Plant": "🌿 A translucent, friendly-looking fern.",
-        "Record Player": "🎶 Plays lo-fi beats for sleeping.",
-        "✨Fairy Lights": "🏮 Drapes over anything they own.",
-        "Beanbag Chair": "💺 Takes the exact shape of the pet.",
-        "Framed Polaroid": "📸 Of the pet and its owner!",
-        "No-prick Cactus": "🌵 It’s actually quite fuzzy.",
-        "Cloud Rug": "☁️ Feels like walking on air.",
-        "Stardust": "✨ Change the pet's color temporarily.",
-        "Antique Key": "🔑 No one knows what it opens yet.",
-        "Ever-Burning Candle": "🕯️ Smells like vanilla and old books.",
-        "Message in a Bottle": "🍾 Contains a random compliment.",
-        "Pocket Sun": "☀️ Keeps the pet warm on rainy days.",
-        "Crystal Geode": "💎 Sparkles when the pet is happy.",
-        "Phoenix Feather": "🪶 Warm to the touch.",
-        "Compass that points to snacks": "🧭 Always reliable.",
-        "Enchanted Umbrella": "☂️ Floats over them automatically.",
-        "Golden Ticket": "🎟️ A pass to a future Secret Garden.",
-        "🦡": "A baby armadillo friend curled in a ball.",
-        "🐯": "An adorable tiger cub.",
-        "🦔": "A cute hoglet (baby hedgehog) who wants to be your friend.",
-        "🦖": "A baby dinosaur. Cute but fiersome.",
-        "🦊": "A sweet little kit, who loves to brush the legs of their friends.",
-        "🐌": "A whimsical snail who leaves a glittery trail and tells wonderful stories.",
-        "🐧": "A baby penguin. Fluffy, floofy and ready for fun.",
-        "🦅": "A magestic eagle who will keep watch over your adorable pet.",
-        "🐢": "A wise old tortoise. The very picture of refinement.",
-        "🦇": "A baby bat, who loves to hang around in the day, and party at night."
-    };
-
-    const DESCRIPTIONS = {};
-    Object.keys(RAW_DESCRIPTIONS).forEach(key => {
-        DESCRIPTIONS[normalizeItemName(key)] = RAW_DESCRIPTIONS[key];
-    });
 
     let gameState = null;
     let viewingWeek = null;
@@ -273,7 +199,6 @@
             gameState = await response.json();
             if(!viewingWeek) viewingWeek = gameState.currentWeek;
             
-            // Check completed status to trigger celebrations
             gameState.users.forEach(userName => {
                 const userObj = gameState.userData[userName];
                 const hist = userObj.history.find(h => Number(h.week) === Number(gameState.currentWeek));
@@ -286,8 +211,8 @@
                 }
             });
 
-            renderUsers(); // Builds layout if new users are found
-            updateUI();    // Populates data
+            renderUsers(); 
+            updateUI();    
         } catch (e) { console.log("Sync failed", e); }
     }
 
@@ -295,23 +220,22 @@
         if (!gameState || !gameState.users) return;
         const container = document.getElementById('usersContainer');
         
-        // Only redraw the DOM if the list of users changed
         if (renderedUsers.length !== gameState.users.length) {
             let html = "";
             gameState.users.forEach(userName => {
                 const safeId = userName.replace(/[^a-zA-Z0-9]/g, '');
                 
-                // Build dropdown options for replying to OTHERS
                 let replyOptions = gameState.users
                     .filter(u => u !== userName)
-                    .map(u => `<option value="${u}">${u}</option>`)
-                    .join('');
+                    .map(u => `<option value="${u}">${u}</option>`).join('');
 
                 html += `
                 <div class="user-column" id="col_${safeId}">
-
-                    <!-- User Card: Pet and Stats -->
                     <div class="user-card">
+                        
+                        <!-- PAUSE OVERLAY BADGE -->
+                        <div id="pauseOverlay_${safeId}" style="display:none; position:absolute; top:-10px; left:-10px; background:#e17055; color:white; padding:5px 15px; border-radius:20px; font-weight:bold; z-index:10; transform:rotate(-10deg);">⏸️ ON LEAVE</div>
+
                         <div class="bubble-container">
                             <div class="thought-bubble-wrapper" id="thoughtWrapper_${safeId}">
                                 <div id="bubble_${safeId}" class="thought-bubble">💭 ...</div>
@@ -319,9 +243,15 @@
                             </div>
                             <div id="replyBox_${safeId}" class="reply-bubble" style="display:none;"></div>
                         </div>
-                        <img id="pet_${safeId}" class="pet-sprite" src="" onclick="clickToFly('${userName}')" onerror="if (this.src.indexOf('.jpg') !== -1) { this.src = this.src.replace('.jpg', '.png'); } else if (this.src.indexOf('.png') !== -1) { this.src = this.src.replace('.png', '.jpg'); }">
-                        <div id="badge_${safeId}" class="status-badge status-happy">Status: Happy</div>
-                        <h3>${userName}</h3>
+                        <img id="pet_${safeId}" class="pet-sprite" src="" onclick="clickToFly('${userName}')" onerror="if(!this.dataset.retried){ this.dataset.retried = true; this.src = this.src.replace('.jpg', '.png'); } else { this.onerror = null; }">
+                        
+                        <!-- STATUS & PLAY BUTTON -->
+                        <div style="display:flex; justify-content:center; gap:8px; margin-bottom:10px; align-items:center;">
+                            <div id="badge_${safeId}" class="status-badge status-happy" style="margin:0;">Status: Happy</div>
+                            <button id="playBtn_${safeId}" class="action-btn" style="padding: 5px 10px; font-size: 0.8em; flex: 0; background: #0984e3; display:none;" onclick="clickToFly('${userName}')">🎾 Play</button>
+                        </div>
+                        
+                        <h3 style="margin-top:0;">${userName}</h3>
                         <div class="progress-container"><div id="bar_${safeId}" class="progress-fill"></div></div>
                         <p id="txt_${safeId}">0 / 0 (0%)</p>
                         
@@ -338,18 +268,18 @@
                         <p id="inv_${safeId}" style="font-size: 0.8em; color: #666; margin: 5px 0 0 0;">🎒 Items: None</p>
                     </div>
 
-                    <!-- Console: Chat and React -->
                     <div class="control-panel-box">
-                        <strong>✍️ ${userName}'s Console</strong>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong>✍️ ${userName}'s Console</strong>
+                            <button id="pauseToggleBtn_${safeId}" class="msg-btn" onclick="togglePause('${userName}')" style="background:#b2bec3; padding: 4px 8px; font-size: 0.7em;">⏸️ Pause</button>
+                        </div>
                         <div class="control-row">
                             <input type="text" id="input_${safeId}" class="msg-input" placeholder="New thought...">
                             <button class="msg-btn" onclick="saveMessage('${userName}')">Say</button>
                         </div>
-                        
                         <div style="font-size: 0.85em; color: #666; margin-top:5px;">Target: 
                             <select id="replyTarget_${safeId}" class="msg-input" style="padding:4px;">${replyOptions}</select>
                         </div>
-                        
                         <div class="control-row">
                             <input type="text" id="replyIn_${safeId}" class="msg-input" placeholder="Reply to target...">
                             <button class="msg-btn reply-accent-btn" onclick="saveReply('${userName}')">Reply</button>
@@ -370,7 +300,6 @@
                         </div>
                     </div>
 
-                    <!-- Sidebar: Tasks -->
                     <div class="sidebar">
                         <h4>📋 ${userName}'s Tasks</h4>
                         <div id="taskList_${safeId}"></div>
@@ -380,7 +309,6 @@
                             <button onclick="addTask('${userName}')">Add Task</button>
                         </div>
                     </div>
-
                 </div>
                 `;
             });
@@ -396,6 +324,17 @@
             const safeId = userName.replace(/[^a-zA-Z0-9]/g, '');
             const userObj = gameState.userData[userName];
             const folder = userName.toLowerCase();
+            
+            // Toggle Pause UI Elements
+            if (userObj.isPaused) {
+                document.getElementById('pauseOverlay_' + safeId).style.display = "block";
+                document.getElementById('pauseToggleBtn_' + safeId).style.background = "#e17055";
+                document.getElementById('pauseToggleBtn_' + safeId).innerText = "▶️ Unpause";
+            } else {
+                document.getElementById('pauseOverlay_' + safeId).style.display = "none";
+                document.getElementById('pauseToggleBtn_' + safeId).style.background = "#b2bec3";
+                document.getElementById('pauseToggleBtn_' + safeId).innerText = "⏸️ Pause";
+            }
             
             const current = userObj.history.find(h => Number(h.week) === Number(gameState.currentWeek));
             if (current) {
@@ -419,13 +358,10 @@
                         d.setHours(0,0,0,0);
                         let isOverdue = d < now;
                         if(isOverdue) hasOverdueTask = true;
-                        // Ensure the date is in the YYYY-MM-DD format required by the date input
-                        let formattedDate = t.due;
-                        if (formattedDate && formattedDate.includes('T')) {
-                            formattedDate = formattedDate.split('T')[0];
-                        }
 
-                        // Determine shame level based on reschedule counter
+                        let formattedDate = t.due;
+                        if (formattedDate && formattedDate.includes('T')) formattedDate = formattedDate.split('T')[0];
+
                         const delays = t.delayCount || 0;
                         let shameClass = "shame-0";
                         if (delays === 1) shameClass = "shame-1";
@@ -458,6 +394,9 @@
                 }
             }
 
+            // Show/Hide Play Button based on final calculated status
+            document.getElementById('playBtn_' + safeId).style.display = (imageToUse === "happy") ? "block" : "none";
+
             document.getElementById('pet_' + safeId).src = `${folder}/${imageToUse}.jpg?v=${Date.now()}`;
             document.getElementById('badge_' + safeId).innerText = "Status: " + finalStatusText;
             document.getElementById('badge_' + safeId).className = `status-badge status-${hasOverdueTask && userObj.status === 'happy' ? 'disappointed' : userObj.status}`;
@@ -466,17 +405,13 @@
             if (userObj.message) {
                 document.getElementById('bubble_' + safeId).innerText = userObj.message;
                 thoughtWrapper.style.display = "inline-block";
-            } else {
-                thoughtWrapper.style.display = "none";
-            }
+            } else { thoughtWrapper.style.display = "none"; }
 
             const replyBox = document.getElementById('replyBox_' + safeId);
             if(userObj.reply) {
                 replyBox.innerText = userObj.reply;
                 replyBox.style.display = "block";
-            } else {
-                replyBox.style.display = "none";
-            }
+            } else { replyBox.style.display = "none"; }
 
             const badgeEl = document.getElementById('badgeDisplay_' + safeId);
             badgeEl.innerText = userObj.emoji ? userObj.emoji : "";
@@ -501,13 +436,6 @@
             document.getElementById('claim_' + safeId).innerHTML = claimAlert;
         });
 
-        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Friends"];
-        const currentCat = catList[(Number(gameState.currentWeek) - 1) % 5] || "Wearables";
-        
-        const header = document.getElementById('weekHeading');
-        header.innerText = `Current Week ${gameState.currentWeek}: ${currentCat}`;
-        header.style.color = "#2d3436"; 
-
         document.getElementById('prevShopBtn').disabled = (Number(viewingWeek) <= 1);
         document.getElementById('nextShopBtn').disabled = (Number(viewingWeek) >= Number(gameState.currentWeek));
 
@@ -515,24 +443,28 @@
         renderWallOfFame(); 
     }
 
-    // Dynamic Shop Claim validation mapping
     function renderShop() {
         if(!gameState || !gameState.weeklyDrafts) return;
-        const catList = ["Wearables", "Toys", "Snacks", "Decor", "Friends"];
-        const viewCat = catList[(Number(viewingWeek) - 1) % 5];
-        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft (${viewCat})`;
+        document.getElementById('shopTitle').innerText = `🎁 Week ${viewingWeek} Reward Draft`;
 
-        const weeklyItems = gameState.weeklyDrafts[viewingWeek] || [];
-        if (weeklyItems.length === 0) {
-            document.getElementById('shopItems').innerHTML = "<p style='opacity:0.5;'>Loading week draft items list...</p>";
+        const weeklyItems = gameState.weeklyDrafts[viewingWeek];
+        if (!weeklyItems || weeklyItems.length === 0) {
+            document.getElementById('shopItems').innerHTML = "<p style='opacity:0.5;'>No items available or draft is paused.</p>";
             return;
+        }
+
+        // 🌟 Check if the 10-day deadline has passed for this specific week
+        let isDeadlinePassed = true;
+        if (gameState.weekStarts && gameState.weekStarts[viewingWeek]) {
+            let deadline = new Date(gameState.weekStarts[viewingWeek] + (9 * 24 * 60 * 60 * 1000));
+            deadline.setHours(12, 0, 0, 0); // 12pm Wednesday
+            isDeadlinePassed = new Date() > deadline;
         }
 
         let weekClaims = [];
         gameState.users.forEach(userName => {
             let hist = gameState.userData[userName].history.find(h => Number(h.week) === Number(viewingWeek));
             if(hist && hist.claimedItem) {
-                // Strip the tag off behind the scenes so the shop correctly disables the button
                 let normalizedItem = hist.claimedItem.replace(" 🥇(1st)", "").replace(" (1st)", "");
                 weekClaims.push(normalizedItem);
             }
@@ -540,9 +472,11 @@
 
         let html = "";
         weeklyItems.forEach(item => {
-            const isSold = weekClaims.includes(item);
+            // 🌟 If deadline hasn't passed, isSold stays false so EVERYONE can claim it!
+            const isSold = isDeadlinePassed ? weekClaims.includes(item) : false;
+            
             const normalizedCurrentItem = normalizeItemName(item);
-            const tooltip = DESCRIPTIONS[normalizedCurrentItem] || "A special item!";
+            const tooltip = gameState.itemDescriptions[normalizedCurrentItem] || "A special item!";
             
             html += `
                 <div class="item-wrapper">
@@ -579,22 +513,11 @@
             visiblePets.forEach(pet => {
                 const folder = (pet.user || '').toLowerCase().trim();
                 const imageName = (pet.image || '').trim();
-                let displaySection = "";
-                
-                if (pet.name) {
-                    displaySection = `<div class="hof-name-tag">${pet.name}</div>`;
-                } else {
-                    displaySection = `
-                        <div class="hof-input-row">
-                            <input type="text" id="hofIn${pet.rowID}" class="hof-txt-in" placeholder="Name pet...">
-                            <button class="hof-sub-btn" onclick="submitHofName(${pet.rowID})">Submit</button>
-                        </div>`;
-                }
+                let displaySection = pet.name 
+                    ? `<div class="hof-name-tag">${pet.name}</div>`
+                    : `<div class="hof-input-row"><input type="text" id="hofIn${pet.rowID}" class="hof-txt-in" placeholder="Name pet..."><button class="hof-sub-btn" onclick="submitHofName(${pet.rowID})">Submit</button></div>`;
 
-                html += '<div class="hof-card">' +
-                    displaySection +
-                    '<img src="' + folder + '/' + imageName + '" alt="Hero" onerror="if(this.src.indexOf(\'.jpg\')!==-1){this.src=this.src.replace(\'.jpg\',\'.png\');}else if(this.src.indexOf(\'.png\')!==-1){this.src=this.src.replace(\'.png\',\'.jpg\');}">' +
-                    '</div>';
+                html += '<div class="hof-card">' + displaySection + '<img src="' + folder + '/' + imageName + '" alt="Hero" onerror="if(this.src.indexOf(\'.jpg\')!==-1){this.src=this.src.replace(\'.jpg\',\'.png\');}else if(this.src.indexOf(\'.png\')!==-1){this.src=this.src.replace(\'.png\',\'.jpg\');}">' + '</div>';
             });
         }
         document.getElementById('hofDisplayShelf').innerHTML = html;
@@ -620,10 +543,7 @@
         if(localMatch) localMatch.name = nameText;
         renderWallOfFame();
 
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "updateHOFName", rowID: rowID, newName: nameText })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateHOFName", rowID: rowID, newName: nameText }) });
     }
 
     function checkAllNotesClean(userName) {
@@ -671,6 +591,15 @@
         }, 5000);
     }
 
+    async function togglePause(userName) {
+        if(!confirm(`Toggle Leave/Pause for ${userName}? While paused, your pet won't get sick!`)) return;
+        await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "togglePause", user: userName, weekID: gameState.currentWeek })
+        });
+        syncData();
+    }
+
     async function addNote(userName, weekID) {
         const userHist = gameState.userData[userName].history;
         const weekData = userHist.find(h => Number(h.week) === Number(weekID));
@@ -715,13 +644,9 @@
         updateUI();
         document.getElementById('input_' + safeId).value = ""; 
 
-        await fetch(API_URL, { 
-            method: 'POST', 
-            body: JSON.stringify({ user: userName, weekID: gameState.currentWeek, newMessage: msgText }) 
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: userName, weekID: gameState.currentWeek, newMessage: msgText }) });
     }
 
-    // Now dynamically targets the selected clinician from the dropdown
     async function saveReply(sourceUser) {
         const sourceSafeId = sourceUser.replace(/[^a-zA-Z0-9]/g, '');
         const targetUser = document.getElementById('replyTarget_' + sourceSafeId).value;
@@ -730,18 +655,13 @@
 
         const formattedReply = `[${sourceUser}] ${replyText}`;
         const existingReply = gameState.userData[targetUser].reply || "";
-    
-        // NEW: If a reply already exists, add a line break (\n) before stacking the new one
         const combinedReply = existingReply ? existingReply + "\n" + formattedReply : formattedReply;
 
         gameState.userData[targetUser].reply = combinedReply;
         updateUI();
         document.getElementById('replyIn_' + sourceSafeId).value = "";
 
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newReply: combinedReply })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newReply: combinedReply }) });
     }
 
     async function sendReaction(sourceUser, emojiChar) {
@@ -751,20 +671,14 @@
 
         gameState.userData[targetUser].emoji = emojiChar;
         updateUI();
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newEmoji: emojiChar })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: targetUser, weekID: gameState.currentWeek, newEmoji: emojiChar }) });
     }
 
     async function clearReaction(userName) {
         if (!gameState || !gameState.userData[userName].emoji) return;
         gameState.userData[userName].emoji = "";
         updateUI();
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user: userName, weekID: gameState.currentWeek, newEmoji: "" })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: userName, weekID: gameState.currentWeek, newEmoji: "" }) });
     }
 
     async function addTask(userName) {
@@ -782,10 +696,7 @@
         document.getElementById('taskIn_' + safeId).value = "";
         document.getElementById('dateIn_' + safeId).value = "";
 
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user: userName, weekID: gameState.currentWeek, newTasks: JSON.stringify(currentWeekData.tasks) })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: userName, weekID: gameState.currentWeek, newTasks: JSON.stringify(currentWeekData.tasks) }) });
     }
 
     async function deleteTask(userName, sourceWeek, targetIndex) {
@@ -794,11 +705,7 @@
 
         targetWeekData.tasks.splice(targetIndex, 1);
         updateUI();
-
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
-        });
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) }) });
     }
 
     async function editTaskDate(userName, sourceWeek, targetIndex, newDateValue) {
@@ -808,22 +715,14 @@
         if(!targetWeekData || !targetWeekData.tasks) return;
 
         const task = targetWeekData.tasks[targetIndex];
-        
-        // Normalize existing date for comparison so clicking without changing doesn't penalize
         let oldDate = task.due;
         if (oldDate && oldDate.includes('T')) oldDate = oldDate.split('T')[0];
 
         if (oldDate !== newDateValue) {
             task.due = newDateValue;
-            // Increment shame counter
             task.delayCount = (task.delayCount || 0) + 1;
-            
             updateUI();
-
-            await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) })
-            });
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ user: userName, weekID: sourceWeek, newTasks: JSON.stringify(targetWeekData.tasks) }) });
         }
     }
 
@@ -844,7 +743,6 @@
         syncData();
     }
 
-    // --- Confetti Engine remains completely unchanged ---
     const canvas = document.getElementById("confettiCanvas");
     const ctx = canvas.getContext("2d");
     let particles = [];
