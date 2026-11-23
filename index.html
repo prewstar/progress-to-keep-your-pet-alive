@@ -397,7 +397,10 @@
             // Show/Hide Play Button based on final calculated status
             document.getElementById('playBtn_' + safeId).style.display = (imageToUse === "happy") ? "block" : "none";
 
-            document.getElementById('pet_' + safeId).src = `${folder}/${imageToUse}.jpg?v=${Date.now()}`;
+            const petImg = document.getElementById('pet_' + safeId);
+            delete petImg.dataset.retried; // Clear the lock so the fallback works again
+            petImg.src = `${folder}/${imageToUse}.jpg?v=${Date.now()}`;
+            
             document.getElementById('badge_' + safeId).innerText = "Status: " + finalStatusText;
             document.getElementById('badge_' + safeId).className = `status-badge status-${hasOverdueTask && userObj.status === 'happy' ? 'disappointed' : userObj.status}`;
 
@@ -435,6 +438,12 @@
             document.getElementById('history_' + safeId).innerHTML = backHTML || "All caught up! ✨";
             document.getElementById('claim_' + safeId).innerHTML = claimAlert;
         });
+
+        const header = document.getElementById('weekHeading');
+        if (header) {
+            header.innerText = `Current Week ${gameState.currentWeek}`;
+            header.style.color = "#2d3436"; 
+        }
 
         document.getElementById('prevShopBtn').disabled = (Number(viewingWeek) <= 1);
         document.getElementById('nextShopBtn').disabled = (Number(viewingWeek) >= Number(gameState.currentWeek));
