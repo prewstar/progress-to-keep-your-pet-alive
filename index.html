@@ -177,10 +177,11 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbyAPSvmmBvpYmBcjUa1AhU3q8cIP-WlHCSwynSjWynBG6ED2bawA8DXl7fhagVdlrNu/exec";
     
     const CLINICIAN_CONFIG = {
-        "Michael": { flyPrefix: "deerfly" },
-        "Jacinta": { flyPrefix: "dragonfly" }
+        "Michael": { flyPrefix: "deerfly", maxFrames: 19 },
+        "Jacinta": { flyPrefix: "dragonfly", maxFrames: 19 },
+        "Jodie":   { flyPrefix: "pigfly", maxFrames: 15 }
     };
-    const DEFAULT_CONFIG = { flyPrefix: "fly" }; 
+    const DEFAULT_CONFIG = { flyPrefix: "fly", maxFrames: 19 };
 
     function normalizeItemName(str) {
         if (!str) return "";
@@ -590,7 +591,7 @@
         const filePrefix = config.flyPrefix;
         
         let currentFrame = 1; 
-        const maxFrames = 19;
+        const maxFrames = config.maxFrames || 19;
         
         frameImg.src = `${folder}/${filePrefix}${currentFrame}.png`;
         stage.style.display = 'block';
